@@ -247,4 +247,338 @@ se não quiser usar cache, acrescenta no final `--no-cache`
 
 `curl localhost:8080`
 
+`cp -R 2 3`
 
+`cd 3/`
+
+`vim Dockerfile`
+
+Adiciona depois do ENV:
+
+```
+COPY index.html /var/www/html
+```
+
+Cria o index.html no mesmo nível que o Dockerfile, com um texto qualquer e builda
+
+`docker image build -t meu_apache:3.0.0 .`
+
+`docker container run -d -p 8000:80 meu_apache:3.0.0`
+
+Abre o `localhost:8000` no navegador para ver o index.
+
+`docker container exec -ti <container_id> bash`
+
+`cat /var/www/html/index.html`
+
+Para mudar a permissão de execução, adiciona abaixo do RUN:
+
+```
+RUN chown www-data:www-data /var/lock && chown www-data:www-data /var/run/ && chown www-data:www-data /var/log/
+```
+
+Como não tem permissão para usar porta "baixa" (80), o usuário voltou a ser `root`
+
+Substitui o COPY pelo ADD. A diferença é que o COPY copia arquivos de diretórios e adiciona no caminho definido. O ADD faz isso e copia o arquivo tar extraído, passando os arquivos que ficam nele. Se tem um arquivo remoto, por exemplo em `www.qualquercoisa.arquivo.txt` ele consegue baixar o arquivo e adicionar no container.
+
+Depois de LABEL adiciona a linha seguinte para rodar com o usuário específico, não apenas root:
+
+```
+USER root
+
+WORDIR /var/www/html
+```
+
+WORKDIR é o diretório padrão. Quando o container subir, vamos "cair" direto no diretório definido
+
+`docker image build -t meu_apache:4.0.0 .`
+
+`docker container run -d -p 8080:80 meu_apache:4.0.0`
+
+`docker container logs -f <container_id>`
+
+`curl localhost:8080`
+
+--
+
+## MultiStage
+
+`mkdir 4 && cd 4/`
+
+`vim meu_go.go`
+
+```
+package main
+import "fmt"
+
+func main(){
+    fmt.Println("Giropops Strigus Girus")
+}
+```
+
+`vim Dockerfile`
+
+```
+FROM golang
+
+WORKDIR /app
+ADD . /app
+RUN go build -o meugo
+
+ENTRYPOINT ./meugo
+```
+
+`docker image build -t meugo:1.0 .`
+
+`docker container run -ti meugo:1.0`
+
+`docker image ls`
+
+tamanho aproximado da imagem: 943MB
+
+Deve retornar "Giropops Strigus Girus"
+
+`cd .. && cp -R 4 5 && cd 5/`
+
+`vim Dockerfile`
+
+modifica o arquivo da seguinte forma, com explicação no comentário do arquivo
+
+```
+FROM golang AS buildando
+
+WORKDIR /app
+ADD . /app
+RUN go build -o meugo
+
+# o primeiro FROM é referente ao código até aqui
+
+FROM alpine
+WORKDIR /giropops
+COPY --from=buildando /app/meugo /giropops/
+
+# vai copiar o meugo da primeira camada para o giropops da segunda camada da imagem 
+
+ENTRYPOINT ./meugo
+```
+
+`docker image build -t meugo:2.0 .`
+
+`docker container run -ti meugo:2.0`
+
+`docker image ls`
+
+tamanho aproximado da imagem: 7.53MB
+
+Isso acontece porque a imagem do alpine, que existe separadamente, tem aproximadamente 5.59MB. A imagem do golang tem aproximadamente 941MB. O primeiro FROM, a primeira fase da imagem, é utilizada para criar o "pré-container". A segunda fase usa a primeira.
+
+## Palestra: Images Deep Dive, Healthcheck e Docker commit
+
+- No dockerfile é possível usar multiline. Por exemplo:
+
+```
+RUN yum update -y && \
+  yum intall -y apache2 \
+    git \
+    java \
+    python
+```
+
+- Somente adicionar os pacotes necessários. Se precisar fazer troubleshooting, depois instala as dependências
+
+- Limpe a casa
+
+```
+ENV MRAAVERSION v1.3.0
+RUN git clone https://github.com/intel-iot-devkit/mraa.git && \
+cd mraa && \
+git checkout -b build ${MRAAVERSION} && \
+<some build steps> make install && \
+rm -rf /root/mraa
+```
+
+- Reduza o número de camadas
+- Use o `.dockerignore`. O arquivo deve ficar no mesmo nível do `Dockerfile`
+- Adicione um `non-root` user
+- CMD: serve para executar um comando
+```
+# exec:
+CMD ["giropops", "param1", "param2"]
+
+#modo shell:
+CMD giropops param1 param2
+```
+- ENTRYPOINT: principal processo na execução do container
+```
+# exec:
+ENTRYPOINT ["giropops", "param1"]
+
+#modo shell:
+ENTRYPOINT giropops param1
+```
+- Se usar o ENTRYPOINT e o CMD no mesmo dockerfile é obrigatório usar no modo exec. O que tiver no CMD é apenas um parâmetro para o ENTRYPOINT.
+```
+# exec:
+ENTRYPOINT ["giropops"]
+
+#modo shell:
+CMD ["param1"]
+```
+- Use ou não o cache, dependendo da intenção. Sem cache, vai instalar a última versão do que tem no `apt`
+```
+docker image build --no-cache -t opa:1.0 .
+```
+- Container é imutável e efêmero
+- Use um script de start, se não tiver outra solução
+```
+ENTRYPOINT ["python", "start.py"]
+```
+- NÃO use um script de start, pois não é elegante
+- Use variáveis
+```
+ENV alynne comy2n
+```
+- Use variáveis no dockerfile
+```
+ENV app_dir /opt/app
+WORKDIR ${app_dir}
+ADD . $app_dir
+```
+- SHELL
+```
+SHELL ["powershell", "-command"]
+```
+- LABELS
+```
+LABEL "com.example.vendor"="LINUXtips"
+LABEL com.example.label-with-value="VAIIII"
+LABEL version="1.0"
+LABEL description="Aqui vc pode \
+usar multi-line!"
+```
+- COPY ou ADD: os dois fazem a mesma coisa, copiar. O COPY copia arquivos e diretórios. O ADD, além disso, copia o conteúdo de arquivos da extensão tar e jar. Também pega arquivos remotos.
+
+```
+COPY . /app
+COPY dir1 /app
+COPY file /app
+
+ADD . /app
+ADD opa.tar /app
+ADD http://abc.com/arquivo /app
+```
+- ARGS: argumentos que podem ser mudados no build
+
+```
+FROM ubuntu
+ARG CONT_IMG_VER
+ENV CONT_IMG_VER v1.0.0
+RUN echo $CONT_IMG_VER
+```
+```
+$ docker build --build-arg
+CONT_IMG_VER=v2.0.0 Dockerfile
+```
+- HEALTHCHECK: faz uma verificação a cada x período de tempo
+```
+HEALTHCHECK --interval=5m --timeout=3s \
+  CMD curl -f http://localhost/ || exit 1
+```
+- Multi-stage: espécie de pipeline dentro do container
+
+Demo:
+
+`docker container rm -f $(docker ps -q)` para remover todos os containers. `-q` traz o id do container.
+
+`cd ../ && cp -R 3 6 && cd 6/ && vim Dockerfile`
+
+Adiciona o curl no RUN:
+
+```
+RUN apt-get update && apt-get install -y apache2 && apt-get clean curl
+```
+
+Adiciona o exemplo do HEALTHCHECK abaixo do ADD. Se demorar 3 segundos para responder, vai dar timeout e sair do container.
+
+`docker image build -t meu_apache:5.0.0 .`
+
+`docker container run -d -p 8080:80 meu_apache:5.0.0`
+
+Quando executa `docker container ls`, no status aparece `Up X seconds (health: starting)`. Depois de aproximadamente um minuto, deve mudar para `Up About a minute (healthy)`
+
+O ideal é colocar o HEALTHCHECK no docker-compose.
+
+Para fazer falhar:
+
+`docker container exec -ti <container_id> bash`
+
+`echo "123.21.12.12 localhost" > /etc/hosts`
+
+`ping localhost`
+
+`curl -f http://localhost`
+
+`docker container ls`
+
+criar imagem de container a partir de um container em execução, sem dockerfile
+
+`docker container run  -ti ubuntu`
+
+`docker commit -m "ubuntu com vim e curl" <container_id>`
+
+`docker image ls`
+
+`docker image tag <image_id> ubuntu_vim_curl:1.0`
+
+`docker container run -ti ubuntu_vim_curl:1.0`
+
+## Dockerhub
+
+`docker image ls`
+
+`docker image tag <image_id> <id_do_dockerhub>/meu_apache:1.0.0`
+
+Como vai ser o primeiro no DockerHub, pode ser chamado de `1.0.0`
+
+Considerando que se tem uma conta no DockerHub:
+
+`docker login`
+
+`docker push <id_do_dockerhub>/meu_apache:1.0.0`
+
+`docker image rm -f alynnefs/meu_apache:1.0.0`
+
+`docker container run -d alynnefs/meu_apache:1.0.0`
+
+Como executar a imagem padrão do registry
+
+`docker container run -d -p 5000:5000 --restart=always --name registry registry:2`
+
+`-d` daemon
+`-p` porta
+`--restart` caso tenha problema, reinicia o container
+sempre pegar a versão 2, por ser a versão mais recente e compatível com as novas versões do docker
+
+`docker logout`
+
+`docker image tag <registry_image_id> localhost:5000/meu_apache:1.0.0`
+
+sendo `endereço_registry/image`
+
+`docker image push localhost:5000/meu_apache:1.0.0`
+
+`docker container rm -f <id_do_container_em_execução>`
+
+`docker image rm -f <id_da_imagem>`
+
+`docker container run -d localhost:5000/meu_apache:1.0.0`
+
+ele baixa novamente.
+
+`curl localhost:5000/v2/_catalog`
+
+`curl localhost:5000/v2/meu_apache/tags/list`
+
+`docker exec -ti <id_registry> sh`
+
+`ls /var/lib/registry/docker/registry/v2/repositories/meu_apache`
