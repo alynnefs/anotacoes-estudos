@@ -121,3 +121,73 @@ Na máquina 1
 - `docker service scale webserver=10`, a máquina 2 volta a receber containers
 - `docker node update --availability drain maquina-2` vai desligar os containers que estão na máquina 2 e vão subir novos nas máquinas 1 e 3
 - Depois de ativar, usa o scale para diminuir para a quantidade de máquinas e depois para 10 novamente
+
+### Services
+
+Forma de ter diversos containers respondendo a determinado serviço
+
+`docker service create --name giropops --replicas 3 -p 8080:80 nginx`
+
+8080 é referente à porta do cluster e vai redirecionar a todas as réplicas de container
+
+`docker service ls`
+- modo: "replicated"
+- réplicas: disponíveis/total
+
+`docker service ps giropops` mostra todas as réplicas
+
+`docker service inspect giropops --pretty`
+
+`docker service scale giropops=10`
+
+#### Services e volume
+
+`docker volume crete giropops`
+
+`cd /var/lib/docker/volumes/giropops/_data/`
+
+`vim index.html`
+
+```
+GIROPOPS STRIGUS GIRUS
+```
+
+`docker service create --name giropops --replicas 3 -p 8080:80 --mount type=volume,src=giropops,dst=/usr/share/nginx/html/ nginx`
+
+Executar algumas vezes para ver em réplicas diferentes
+- `docker service ls`
+- `curl localhost:8080` 
+
+Só aparece a mensagem em uma das réplicas, porque não é o mesmo index. O docker não sincroniza o conteúdo dos volumes por padrão.
+
+Na máquina 1. Exemplo não recomendado para compartilhar:
+- `sudo apt install nfs-server`
+- `mkdir /opt/site`
+- `vim /etc/exports`
+- coloca as opções:
+    - `/var/lib/docker/volumes/giropops *(rw,sync,subtree_check)`
+    - `/opt/site *(rw,sync,subtree_check)`
+- exportfs -ar
+- `chmod 777 /var/lib/docker/volumes/giropops -R`, também não recomendado, é apenas demonstração
+
+Na máquina 2 (client):
+- `sudo apt install nfs-common`
+- `showmount -e <ip_maquina_1>` para ver se ele "enxerga" a máquina
+- `mount -t nfs <ip_maquina_1>:/opt/site /var/lib/docker/volumes/giropops`, sendo origem e destino do que vai ser compartilhado
+
+
+Para verificar
+- Máquina 1:
+    - `mkdir /opt/site/_data`
+- Máquina 2:
+    - `ls /var/lib/docker/volumes/giropops`
+- Máquina 1:
+    - `docker volume rm giropops`
+    - `docker volume create giropops`
+    - `ln -s /opt/site/ /var/lib/docker/volumes/giropops/`
+    - `echo "GIROPOPS STRIGUS GIRUS" > /opt/site/_data/index.html`
+- Máquina 2:
+    - `cat _data/index.html`
+- Máquina 1:
+    - `docker service create --name giropops --replicas 3 -p 8080:80 --mount type=volume,src=giropops,dst=/usr/share/nginx/html/ nginx`
+    - `curl localhost:8080` algumas vezes
