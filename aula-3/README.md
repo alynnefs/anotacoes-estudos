@@ -191,3 +191,81 @@ Para verificar
 - Máquina 1:
     - `docker service create --name giropops --replicas 3 -p 8080:80 --mount type=volume,src=giropops,dst=/usr/share/nginx/html/ nginx`
     - `curl localhost:8080` algumas vezes
+
+#### Service e Network
+
+`docker service create --name giropops --replicas 3 -p 8080:80 --mount type=volume,src=giropops,dst=/usr/share/nginx/html --hostname nome --limit-cpu 0.25 --limit-memory 64M --env alynne=comye2n --dns 8.8.8.8 nginx`
+
+`docker ps`
+
+`docker container exec -ti <container_id> sh`
+
+`bash`
+
+vai aparecer `root@nome`
+
+`cat /etc/resolv.conf`
+
+fora do container: `docker service inspect giropops`
+
+`docker service create --name nginx2 -p 8088:80 nginx`
+
+`curl localhost:8080` antigo
+
+`curl localhost 8088` novo
+
+`docker network create -d overlay giropops`
+
+`docker network ls`
+
+`docker service create --name nginx1 -p 8080:80 --network giropops nginx`
+
+`docker service create --name nginx2 -p 8088:80 --network giropops nginx`
+
+`docker service ls`
+
+`docker service inspect nginx1` para procurar por `NetworkID`
+
+`docker container exec -ti <container_id> bash`
+
+`curl nginx1` e `curl nginx2` retornam a página de boas vindas, mesmo sem ip. Ele faz balanceamento de carga entre as réplicas
+
+`echo "giropops" > /usr/share/nginx/html/index.html`
+
+`curl nginx1` e `curl nginx2` novamente
+
+`docker network create -d overlay strigus`
+
+`docker service create --name nginx3 -p 8880:80 --network strigus nginx`
+
+`curl nginx3` para ver que o container não é alcançado
+
+`docker service update --network-add strigus nginx1` para adicionar a rede "strigus" em todos os containers nginx
+
+`docker service inspect nginx1` para ver que um VirtualIP foi adicionado
+
+
+## Exercício
+
+- Qual o comando que exibe a linha que deverá ser executada no host, para que o mesmo seja um membro do cluster Swarm como um node worker?
+    - `docker swarm join-token worker`
+- Qual o comando utilizado para tornar um node de Manager para Worker?
+    - `docker node demote LINUXtips-03`
+- Qual o comando utilizado para um node Worker deixar o cluster?
+    - `docker swarm leave`
+- Qual o comando utilizado para um node Manager deixar o cluster swarm?
+    - `docker swarm leave --force`
+- Qual o comando utilizado para criar um service do Nginx em um cluster Swarm?
+    - `docker service create --name webserver nginx`
+- Qual o comando utilizado para criar um service do Nginx com 10 replicas?
+    - `docker service create --name webserver --replicas 10 -p 8080:80 nginx`
+- Qual o comando utilizado para criar um network overlay?
+    - `docker network create -d overlay giropops`
+- Qual o comando utilizado para atualizar alguma informação do service, como volumes e networks?
+    - `docker service update`
+- Por padrão no Swarm, os dados de um volume são replicados entre todos os nodes do cluster?
+    - não
+- Quantos nodes Manager eu preciso ter em meu cluster, para suportar a perda de dois nodes Manager simultaneamente?
+    - 5
+- Qual o comando utilizado para aumentar o número de réplicas de determinado service para 10?
+    - `docker service scale giropops=10`
