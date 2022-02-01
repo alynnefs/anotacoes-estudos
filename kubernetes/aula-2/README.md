@@ -24,7 +24,7 @@ Supervisor D (?) é responsável por ver ser o kubelet e o docker estão rodando
 
 O kubernetes não utiliza nat.
 
-CNI é uma definição de uma biblioteca para conseguir fazer um plugin para que a rede funcione e para que tenha um bom gerenciamento das redes do container.
+Container Network Interface (CNI) é uma definição de uma biblioteca para conseguir fazer um plugin para que a rede funcione e para que tenha um bom gerenciamento das redes do container.
 
 O container d (?) é o container runtime do docker.
 
@@ -482,3 +482,219 @@ stress --vm 1 --vm-bytes 507M
 
 ## Limit Range
 
+```
+kubectl create namespace giropops
+kubectl get namespaces
+kubectl describe namespaces giropops
+kubectl get namespaces giropops -o yaml > meu_primeiro_namespace.yaml
+```
+
+```
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: strigus
+spec:
+  finalizers:
+  - kubernetes
+```
+
+```
+kubectl create -f meu_primeiro_namespace.yaml
+kubectl get namespaces
+```
+
+```
+# vim namespace_limitado.yaml
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: limitando-recursos
+spec:
+  limits:
+  - default:
+      cpu: 1
+      memory: 256Mi
+    defaultRequest:
+      cpu: 0.5
+      memory: 128Mi
+    type: Container
+```
+
+```
+kubectl create -f namespace_limitado.yaml -n giropops
+kubectl get limitranges # No resources found
+kubectl get limitranges -n giropops
+
+kubectl describe limitranges
+kubectl describe limitranges -n giropops limitando-recursos
+```
+
+Tudo o que criar neste namespace já vai estar limitado. Para criar um pod:
+
+```
+# vim pod-limitado.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: limit-pod
+  namespace: giropops
+spec:
+  containers:
+  - name: meu-container
+    image: nginx
+```
+
+```
+kubectl create -f pod-limitado.yaml -n giropops # se tá no yaml, não precisa do -n
+kubectl get pods # no resources found
+kubectl get pods -n giropops
+kubectl describe pods -n giropops
+kubectl delete -f pod-limitado.yaml
+```
+
+### Comandos
+
+```
+# vim limitando-recursos.yaml:
+
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: limitando-recursos
+spec:
+  limits:
+  - default:
+      cpu: 1
+      memory: 100Mi
+    defaultRequest:
+      cpu: 0.5
+      memory: 80Mi
+    type: Container
+
+
+# vim pod-limitrange.yml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-limitrange
+spec:
+  containers:
+    - name: limitado-pod
+      image: nginx
+```
+
+```
+# kubectl create namespace primeiro-namespace
+
+# kubectl get ns
+
+# kubectl describe primeiro-namespace
+
+# kubectl describe namespace primeiro-namespace
+
+# kubectl create -f limitando-recursos.yaml -n primeiro-namespace
+
+# kubectl get limitranges
+
+# kubectl get limitranges -n primeiro-namespace
+
+# kubectl get limitranges --all-namespace
+
+# kubectl describe limitranges -n primeiro-namespace
+
+# kubectl create -f pod-limitrange.yaml
+
+# kubectl create -f pod-limitrange.yaml -n primeiro-namespace
+
+# kubectl get pods --all-namespaces
+
+#kubectl describe pod limit-pod
+
+# kubectl describe pod limit-pod -n primeiro-namespace
+```
+
+## Taints
+
+`kubectl describe nodes maquina-2` para ver `Taints: <none>`
+
+`kubectl describe nodes maquina-1` para ver `Taints: node-role.kubernetes.io/master:NoSchedule`. Isso indica que não é para agendar mais nenhum pod. Ele vai manter os pods que estão executando, mas não vai ter mais novos deploys.
+
+```
+kubectl create -f deployment_limitado.yaml
+kubectl get deployments. --all-namespaces # para ver quantidade de pods
+kubectl get pods -o wide # estão nas máquinas 2 e 3
+kubectl scale --replicas=6 deployment meu-nginx
+kubectl taint node maquina-2 key1=value1:NoSchedule
+```
+
+`kubectl describe nodes maquina-2` para ver `Taints: key1=value1:NoSchedule`
+
+```
+kubectl edit deployments. meu-nginx
+```
+Apaga os limites de resources
+
+```
+kubectl scale --replicas=10 deployment meu-nginx
+kubectl get deployments.
+kubectl get pods -o wide
+```
+
+```
+kubectl delete deployments. meu-nginx
+kubectl taint node maquina-2 key1:NoSchedule-
+
+kubectl create -f deployment_limitado.yaml
+kubectl get pods -o wide
+kubectl taint node maquina-2 key1=value1:NoExecute
+kubectl describe nodes maquina-2
+kubectl get pods -o wide
+```
+
+Todos os pods que estavam no 2 foram movidos para o 3.
+
+```
+kubectl taint node maquina-2 key1:NoExecute-
+kubectl get pods -o wide
+```
+
+Não volta a balancear o cluster.
+
+`kubectl taint nodes --all key1=value1:NoExecute` iria deixar TODOS os nós sem execução.
+
+### Comandos
+
+```
+# kubectl describe nodes elliot-01 | grep -i taint
+Taints:             node-role.kubernetes.io/master:NoSchedule
+
+# kubectl describe nodes  | grep -i taints
+
+# kubectl taint node elliot-01 node-role.kubernetes.io/master:NoSchedule-
+
+# kubectl taint node elliot-01 node-role.kubernetes.io/master:NoSchedule
+
+# kubectl taint node elliot-02 key1=value1:NoSchedule
+
+# kubectl taint node elliot-02 key1=value1:NoSchedule-
+
+# kubectl get pods -o wide
+
+# kubectl taint node elliot-02 key1=value1:NoExecute-
+
+# kubectl taint node elliot-02 key1=value1:NoExecute
+
+# kubectl get pods -o wide
+
+# kubectl taint node all key1=value1:NoExecute
+```
+
+Quando cria um ClusterIP, cria só um ClusterIP. Quando cria um NodePort, cria um NodePort e um ClusterIP. Quando cria um LoadBalancer, cria um LoadBalancer, um NodePort e um ClusterIP.
+
+`get deployments.apps nginx-tosko -o wide`
+
+`kubectl cordon <nome_nó>` não agenda mais coisas nele (SchedulingDisabled)
+
+`kubectl cordon <nome_nó>` volta a agendar coisas nele
