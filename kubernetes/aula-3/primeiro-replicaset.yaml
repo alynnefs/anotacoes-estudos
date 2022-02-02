@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: ReplicaSet
+metadata:
+  name: replica-set-primeiro
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        system: Giropops
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.7.9
+        ports:
+        - containerPort: 80
