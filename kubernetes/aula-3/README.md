@@ -345,4 +345,241 @@ kubectl delete pods daemon-set-primeiro-<hash> # cria outro depois que apaga
 
 ```
 kubectl rollout history daemonset daemon-set-primeiro
+kubectl rollout history daemonset daemon-set-primeiro --revision=1
+kubectl rollout history daemonset daemon-set-primeiro --revision=2
+
+kubectl rollout history undo daemonset daemon-set-primeiro --to-revision=1
+
+kubectl describe pods daemon-set-primeiro-<hash> | grep Image
+```
+
+O comando que tem `undo` serve para voltar para a primeira versão, mas não volta porque não estava definido no yaml. Adiciona no primeiro nível, depois do template:
+
+```
+updateStrategy:
+  type: RollingUpdate
+```
+
+`kubectl describe ds daemon-set-primeiro` para ver quantos mós estáo atualizados de acordo com a versão corrente.
+
+`kubectl get daemonsets` mostra 2
+
+`kubectl get pods -o wide` mostra 3 pods
+
+Para ver funcionando com o updateStrategy:
+
+```
+kubectl delete -f primeiro-daemonset.yaml
+
+kubectl create -f primeiro-daemonset.yaml
+
+kubectl get daemonsets
+kubectl describe ds daemon-set-primeiro
+kubectl get daemonsets daemon-set-primeiro -o yaml
+
+kubectl set image ds daemon-set-primeiro nginx=nginx:1.15.0
+
+kubectl get daemonsets
+kubectl pods -o wide
+```
+
+Ele já atualiza os pods no momento da edição. 
+
+```
+kubectl rollout history daemonset daemon-set-primeiro
+kubectl rollout history daemonset daemon-set-primeiro --revision=1
+kubectl rollout history daemonset daemon-set-primeiro --revision=2
+
+kubectl rollout history undo daemonset daemon-set-primeiro --to-revision=1
+
+kubectl get pods -o wide
+
+kubectl delete daemonsets daemon-set-primeiro
+```
+
+## Canary Deploy
+
+```
+git clone https://github.com/badtuxx/k8s-canary-deploy-example.git
+cd k8s-canary-deploy-example/
+vim roles/create-cluster/tasks/init-cluster.yml
+
+cp deploy-app-v1-playbook/roles/common/files/* .
+vim app-v1.yml
+
+kubectl create -f app-v1.yml
+kubectl get deploy
+
+
+vim service-app.yml
+kubectl create -f service-app.yml
+kubectl get services
+kubectl get pods -o wide
+
+cp k8s-canary-deploy-example/canary-deploy-app-v2-playbook/roles/common/files/* .
+vim app-v2-canary.yml
+kubectl create -f app-v2-canary.yml
+kubectl get deploy
+kubectl get pods -o wide
+```
+
+Como o selector app do service é giropops e o label app dos deployments também são giropops, é possível rodar duas versões da aplicação no mesmo service.
+
+`curl http://<ip>:32222` algumas vezes para ver a versão mudar. A versão 2 aparece menos, por estar definida para apenas 10%.
+
+```
+cp k8s-canary-deploy-example/deploy-app-v2-playbook/roles/common/files/* .
+vim app-v2.yml
+kubectl apply -f app-v2.yml # porque já existe o giropops
+kubectl get pods -o wide
+```
+
+`curl http://<ip>:32222` algumas vezes para ver que agora está balanceado.
+
+```
+kubectl scale deployment --replicas=3 giropops-v1
+kubectl get pods -o wide
+kubectl scale deployment --replicas=1 giropops-v1
+kubectl get pods -o wide
+```
+
+`curl http://<ip>:32222` algumas vezes para ver que dificilmente aparece a versão 1.
+
+```
+kubectl delete deployments. giropops-v1
+```
+
+`curl http://<ip>:32222` agora só traz a versão 2.
+
+```
+kubectl rollout history deployment giropops-v2
+kubectl rollout history deployment giropops-v2 --revision=1
+kubectl rollout history deployment giropops-v2 --revision=2
+```
+
+### RollingUpdateStrategy
+
+`vim app-v2.yml`
+
+abaixo de replicas, adiciona:
+
+```
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 1
+```
+
+maxSurge: durante o processo de atualização, passa no máximo 2 pods do máximo definido. Se forem 10 pods, pode chegar em 12, para que "desligue" pods e já atualize, não perdendo o valor original.
+
+maxUnavailable: durante o processo de atualização, esse é o número máximo de réplicas que podem ser "desligadas" ao mesmo tempo.
+
+Ao invés do número, também é possível colocar a porcentagem.
+
+```
+kubectl apply -f app-v2.yml
+kubectl get pods -o wide
+
+kubectl delete -f app-v2.yml
+kubectl get pods -o wide
+
+kubectl edit deployment giropops-v2
+```
+
+muda a versão para 1.0.0 em todas as flags. Ele vai usar a estratégia definida.
+
+`kubectl rollout status deployment giropops-v2` para ver o status
+
+```
+kubectl delete -f app-v2.yml
+vim app-v2.yml
+```
+
+```
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 5
+```
+
+Muda os valores para 1 e 5, para que seja mais rápido.
+
+```
+kubectl apply -f app-v2.yml
+kubectl edit deployments giropops-v2
+```
+
+muda a versão para 1.0.0
+
+`kubectl rollout status deployment giropops-v2`
+
+### Comandos
+
+```
+# kubectl rollout history ds daemon-set-primeiro
+
+# kubectl rollout history ds daemon-set-primeiro --revision=1
+
+# kubectl rollout history ds daemon-set-primeiro --revision=2
+
+# kubectl rollout undo ds daemon-set-primeiro --to-revision=1
+
+# kubectl rollout status ds daemon-set-primeiro 
+
+# kubectl describe daemon-set-primeiro-hp4qc | grep -i image:
+
+# kubectl delete -f primeiro-daemonset.yaml
+```
+
+```
+# vim primeiro-daemonset.yaml
+
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: daemon-set-primeiro
+spec:
+  template:
+    metadata:
+      labels:
+        system: DaemonOne
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.7.9
+        ports:
+        - containerPort: 80
+  updateStrategy:
+    type: RollingUpdate
+    
+    
+# kubectl create -f primeiro-daemonset.yaml
+
+# kubectl get daemonset
+
+# kubectl describe ds daemon-set-primeiro
+
+# kubectl get ds daemon-set-primeiro -o yaml | grep -A 2 Strategy
+
+# kubectl set image ds daemon-set-primeiro nginx=nginx:1.15.0
+
+# kubectl get daemonset
+
+# kubectl get pods -o wide
+
+# kubectl describe ds daemon-set-primeiro
+
+# kubectl rollout history ds daemon-set-primeiro
+
+# kubectl rollout history ds daemon-set-primeiro --revision=1
+
+# kubectl rollout history ds daemon-set-primeiro --revision=2
+
+# kubectl rollout undo ds daemon-set-primeiro --to-revision=1
+
+# kubectl rollout status ds daemon-set-primeiro
+
+# kubectl delete ds daemon-set-primeiro
 ```
