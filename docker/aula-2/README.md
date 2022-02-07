@@ -45,12 +45,13 @@ para criar arquivos, tem que acessar a pasta `_data`, que por sua vez está dent
 
 para executar, muda o type para volume e deixa o src apenas como `giropops`:
 
-`docker container run -ti --mount type=volume,src=giropops,dst=/giropops debian`
+```bash
+docker container run -ti --mount type=volume,src=giropops,dst=/giropops debian
 
+ls giropops/
 
-`ls giropops/`
-
-`touch giropops/teste`
+touch giropops/teste
+```
 
 fora do container:
 
@@ -73,13 +74,15 @@ Usando `ls /var/lib/docker/volumes` dá pra ver que o volume giropops não exist
 
 --
 
-`docker volume create giropops`
+```bash
+docker volume create giropops
 
-`docker container run -ti --mount type=volume,src=giropops,dst=/giropops debian`
+docker container run -ti --mount type=volume,src=giropops,dst=/giropops debian
 
-`ctrl+p+q`
+# ctrl+p+q
 
-`docker container inspect <container_id>`
+docker container inspect <container_id>
+```
 
 na parte de Mounts mostra o RW do volume, onde está o dado original, onde monta no container, tipo, etc
 
@@ -117,9 +120,11 @@ Executa de novo mudando o nome e a porta: `docker container run -d -p 5433:5432 
 
 Quem quiser acessar esse postgres vai acessar a 54322. Quando a requisição chegar no host (5433), ele vai redirecionar para a porta do container (5432)
 
-`cd /var/lib/docker/volumes`
+```bash
+cd /var/lib/docker/volumes
 
-`docker container inspect <container_id>`
+docker container inspect <container_id>
+```
 
 procura o mount e copia o nome do volume
 
@@ -133,25 +138,22 @@ aparecerão os dados gerados pelo postgres. Os dois containers estão compartilh
 
 desafio: criar um volume do posgres
 
-`docker volume create dbdados`
-
-`docker container run -d -p 5432:5432 --name pgsql1 --mount type=volume,src=dbdados,dst=/data -e POSTGRESQL_USER=docker -e POSTGRESQL_PASS=docker -e POSTGRESQL_DB=docker kamui/postgresql`
-
-`docker container run -d -p 5433:5432 --name pgsql2 --mount type=volume,src=dbdados,dst=/data -e POSTGRESQL_USER=docker -e POSTGRESQL_PASS=docker -e POSTGRESQL_DB=docker kamui/postgresql`
-
-`docker container ls`
-
-`docker volume ls`
-
-`docker volume inspect dbdados`
+```bash
+docker volume create dbdados
+docker container run -d -p 5432:5432 --name pgsql1 --mount type=volume,src=dbdados,dst=/data -e POSTGRESQL_USER=docker -e POSTGRESQL_PASS=docker -e POSTGRESQL_DB=docker kamui/postgresql
+docker container run -d -p 5433:5432 --name pgsql2 --mount type=volume,src=dbdados,dst=/data -e POSTGRESQL_USER=docker -e POSTGRESQL_PASS=docker -e POSTGRESQL_DB=docker kamui/postgresql
+docker container ls
+docker volume ls
+docker volume inspect dbdados
+```
 
 Para fazer backup do banco de dados do volume em outro docker
 
-`sudo mkdir /opt/backup`
-
-`docker container run -ti --mount type=volume,src=dbdados,dst=/data --mount type=bind,src=/opt/backup,dst=/backup debian tar -cvf <caminho/nome.tar> /data`
-
-`docker container run -ti --mount type=volume,src=dbdados,dst=/data --mount type=bind,src=/opt/backup,dst=/backup debian tar -cvf /backup/bkp-banco.tar /data`
+```bash
+sudo mkdir /opt/backup
+docker container run -ti --mount type=volume,src=dbdados,dst=/data --mount type=bind,src=/opt/backup,dst=/backup debian tar -cvf <caminho/nome.tar> /data
+docker container run -ti --mount type=volume,src=dbdados,dst=/data --mount type=bind,src=/opt/backup,dst=/backup debian tar -cvf /backup/bkp-banco.tar /data
+```
 
 o primeiro dst pode ser qualquer coisa, usamos o mesmo da criação do volume
 o primeiro mount é quem vai ter backup feito, o segundo é para onde vai.
@@ -159,27 +161,26 @@ o primeiro mount é quem vai ter backup feito, o segundo é para onde vai.
 depois vem caminho e nome do arquivo de backup
 diretório que eu quero fazer backup
 
-`sudo ls /opt/backup/`
-
-`tar -xvf bkp-banco.tar`
-
-`ls data`
+```bash
+sudo ls /opt/backup/
+tar -xvf bkp-banco.tar
+ls data
+```
 
 --
 
 ## Dockerfiles
 
-`mkdir dockerfiles`
-
-`mkdir 1`
-
-`cd 1/`
-
-`vim Dockerfile`
+```bash
+mkdir dockerfiles
+mkdir 1
+cd 1/
+vim Dockerfile
+```
 
 arquivo:
 
-```
+```bash
 FROM debian
 
 RUN apt-get update && apt-get install -y apache2 && apt-get clean
@@ -224,7 +225,7 @@ O `-P` vai procurar no dockerfile se tem alguma porta exposta no container. Se t
 
 adiciona no fim do arquivo:
 
-```
+```bash
 ENTRYPOINT ["/usr/sbin/apachectl"]
 CMD ["-D", "FOREGROUND"]
 ```
@@ -245,35 +246,36 @@ se não quiser usar cache, acrescenta no final `--no-cache`
 
 `-d` para rodar em primeiro plano
 
-`curl localhost:8080`
-
-`cp -R 2 3`
-
-`cd 3/`
-
-`vim Dockerfile`
+```bash
+curl localhost:8080
+cp -R 2 3
+cd 3/
+vim Dockerfile
+```
 
 Adiciona depois do ENV:
 
-```
+```bash
 COPY index.html /var/www/html
 ```
 
 Cria o index.html no mesmo nível que o Dockerfile, com um texto qualquer e builda
 
-`docker image build -t meu_apache:3.0.0 .`
-
-`docker container run -d -p 8000:80 meu_apache:3.0.0`
+```bash
+docker image build -t meu_apache:3.0.0 .
+docker container run -d -p 8000:80 meu_apache:3.0.0
+```
 
 Abre o `localhost:8000` no navegador para ver o index.
 
-`docker container exec -ti <container_id> bash`
-
-`cat /var/www/html/index.html`
+```bash
+docker container exec -ti <container_id> bash
+cat /var/www/html/index.html
+```
 
 Para mudar a permissão de execução, adiciona abaixo do RUN:
 
-```
+```bash
 RUN chown www-data:www-data /var/lock && chown www-data:www-data /var/run/ && chown www-data:www-data /var/log/
 ```
 
@@ -283,7 +285,7 @@ Substitui o COPY pelo ADD. A diferença é que o COPY copia arquivos de diretór
 
 Depois de LABEL adiciona a linha seguinte para rodar com o usuário específico, não apenas root:
 
-```
+```bash
 USER root
 
 WORDIR /var/www/html
@@ -291,23 +293,23 @@ WORDIR /var/www/html
 
 WORKDIR é o diretório padrão. Quando o container subir, vamos "cair" direto no diretório definido
 
-`docker image build -t meu_apache:4.0.0 .`
-
-`docker container run -d -p 8080:80 meu_apache:4.0.0`
-
-`docker container logs -f <container_id>`
-
-`curl localhost:8080`
+```bash
+docker image build -t meu_apache:4.0.0 .
+docker container run -d -p 8080:80 meu_apache:4.0.0
+docker container logs -f <container_id>
+curl localhost:8080
+```
 
 --
 
 ## MultiStage
 
-`mkdir 4 && cd 4/`
-
-`vim meu_go.go`
-
+```bash
+mkdir 4 && cd 4/
+vim meu_go.go
 ```
+
+```bash
 package main
 import "fmt"
 
@@ -316,9 +318,11 @@ func main(){
 }
 ```
 
-`vim Dockerfile`
-
+```bash
+vim Dockerfile
 ```
+
+```bash
 FROM golang
 
 WORKDIR /app
@@ -328,23 +332,24 @@ RUN go build -o meugo
 ENTRYPOINT ./meugo
 ```
 
-`docker image build -t meugo:1.0 .`
-
-`docker container run -ti meugo:1.0`
-
-`docker image ls`
+```bash
+docker image build -t meugo:1.0 .
+docker container run -ti meugo:1.0
+docker image ls
+```
 
 tamanho aproximado da imagem: 943MB
 
 Deve retornar "Giropops Strigus Girus"
 
-`cd .. && cp -R 4 5 && cd 5/`
-
-`vim Dockerfile`
+```bash
+cd .. && cp -R 4 5 && cd 5/
+vim Dockerfile
+```
 
 modifica o arquivo da seguinte forma, com explicação no comentário do arquivo
 
-```
+```bash
 FROM golang AS buildando
 
 WORKDIR /app
@@ -362,11 +367,11 @@ COPY --from=buildando /app/meugo /giropops/
 ENTRYPOINT ./meugo
 ```
 
-`docker image build -t meugo:2.0 .`
-
-`docker container run -ti meugo:2.0`
-
-`docker image ls`
+```bash
+docker image build -t meugo:2.0 .
+docker container run -ti meugo:2.0
+docker image ls
+```
 
 tamanho aproximado da imagem: 7.53MB
 
@@ -376,7 +381,7 @@ Isso acontece porque a imagem do alpine, que existe separadamente, tem aproximad
 
 - No dockerfile é possível usar multiline. Por exemplo:
 
-```
+```bash
 RUN yum update -y && \
   yum intall -y apache2 \
     git \
@@ -388,7 +393,7 @@ RUN yum update -y && \
 
 - Limpe a casa
 
-```
+```bash
 ENV MRAAVERSION v1.3.0
 RUN git clone https://github.com/intel-iot-devkit/mraa.git && \
 cd mraa && \
@@ -401,7 +406,7 @@ rm -rf /root/mraa
 - Use o `.dockerignore`. O arquivo deve ficar no mesmo nível do `Dockerfile`
 - Adicione um `non-root` user
 - CMD: serve para executar um comando
-```
+```bash
 # exec:
 CMD ["giropops", "param1", "param2"]
 
@@ -409,7 +414,7 @@ CMD ["giropops", "param1", "param2"]
 CMD giropops param1 param2
 ```
 - ENTRYPOINT: principal processo na execução do container
-```
+```bash
 # exec:
 ENTRYPOINT ["giropops", "param1"]
 
@@ -417,7 +422,7 @@ ENTRYPOINT ["giropops", "param1"]
 ENTRYPOINT giropops param1
 ```
 - Se usar o ENTRYPOINT e o CMD no mesmo dockerfile é obrigatório usar no modo exec. O que tiver no CMD é apenas um parâmetro para o ENTRYPOINT.
-```
+```bash
 # exec:
 ENTRYPOINT ["giropops"]
 
@@ -425,31 +430,31 @@ ENTRYPOINT ["giropops"]
 CMD ["param1"]
 ```
 - Use ou não o cache, dependendo da intenção. Sem cache, vai instalar a última versão do que tem no `apt`
-```
+```bash
 docker image build --no-cache -t opa:1.0 .
 ```
 - Container é imutável e efêmero
 - Use um script de start, se não tiver outra solução
-```
+```bash
 ENTRYPOINT ["python", "start.py"]
 ```
 - NÃO use um script de start, pois não é elegante
 - Use variáveis
-```
+```bash
 ENV alynne comy2n
 ```
 - Use variáveis no dockerfile
-```
+```bash
 ENV app_dir /opt/app
 WORKDIR ${app_dir}
 ADD . $app_dir
 ```
 - SHELL
-```
+```bash
 SHELL ["powershell", "-command"]
 ```
 - LABELS
-```
+```bash
 LABEL "com.example.vendor"="LINUXtips"
 LABEL com.example.label-with-value="VAIIII"
 LABEL version="1.0"
@@ -458,7 +463,7 @@ usar multi-line!"
 ```
 - COPY ou ADD: os dois fazem a mesma coisa, copiar. O COPY copia arquivos e diretórios. O ADD, além disso, copia o conteúdo de arquivos da extensão tar e jar. Também pega arquivos remotos.
 
-```
+```bash
 COPY . /app
 COPY dir1 /app
 COPY file /app
@@ -494,15 +499,16 @@ Demo:
 
 Adiciona o curl no RUN:
 
-```
+```bash
 RUN apt-get update && apt-get install -y apache2 && apt-get clean curl
 ```
 
 Adiciona o exemplo do HEALTHCHECK abaixo do ADD. Se demorar 3 segundos para responder, vai dar timeout e sair do container.
 
-`docker image build -t meu_apache:5.0.0 .`
-
-`docker container run -d -p 8080:80 meu_apache:5.0.0`
+```bash
+docker image build -t meu_apache:5.0.0 .
+docker container run -d -p 8080:80 meu_apache:5.0.0
+```
 
 Quando executa `docker container ls`, no status aparece `Up X seconds (health: starting)`. Depois de aproximadamente um minuto, deve mudar para `Up About a minute (healthy)`
 
@@ -510,45 +516,41 @@ O ideal é colocar o HEALTHCHECK no docker-compose.
 
 Para fazer falhar:
 
-`docker container exec -ti <container_id> bash`
-
-`echo "123.21.12.12 localhost" > /etc/hosts`
-
-`ping localhost`
-
-`curl -f http://localhost`
-
-`docker container ls`
+```bash
+docker container exec -ti <container_id> bash
+echo "123.21.12.12 localhost" > /etc/hosts
+ping localhost
+curl -f http://localhost
+docker container ls
+```
 
 criar imagem de container a partir de um container em execução, sem dockerfile
 
-`docker container run  -ti ubuntu`
-
-`docker commit -m "ubuntu com vim e curl" <container_id>`
-
-`docker image ls`
-
-`docker image tag <image_id> ubuntu_vim_curl:1.0`
-
-`docker container run -ti ubuntu_vim_curl:1.0`
+```bash
+docker container run  -ti ubuntu
+docker commit -m "ubuntu com vim e curl" <container_id>
+docker image ls
+docker image tag <image_id> ubuntu_vim_curl:1.0
+docker container run -ti ubuntu_vim_curl:1.0
+```
 
 ## Dockerhub
 
-`docker image ls`
-
-`docker image tag <image_id> <id_do_dockerhub>/meu_apache:1.0.0`
+```bash
+docker image ls
+docker image tag <image_id> <id_do_dockerhub>/meu_apache:1.0.0
+```
 
 Como vai ser o primeiro no DockerHub, pode ser chamado de `1.0.0`
 
 Considerando que se tem uma conta no DockerHub:
 
-`docker login`
-
-`docker push <id_do_dockerhub>/meu_apache:1.0.0`
-
-`docker image rm -f alynnefs/meu_apache:1.0.0`
-
-`docker container run -d alynnefs/meu_apache:1.0.0`
+```bash
+docker login
+docker push <id_do_dockerhub>/meu_apache:1.0.0
+docker image rm -f alynnefs/meu_apache:1.0.0
+docker container run -d alynnefs/meu_apache:1.0.0
+```
 
 Como executar a imagem padrão do registry
 
@@ -559,26 +561,25 @@ Como executar a imagem padrão do registry
 `--restart` caso tenha problema, reinicia o container
 sempre pegar a versão 2, por ser a versão mais recente e compatível com as novas versões do docker
 
-`docker logout`
-
-`docker image tag <registry_image_id> localhost:5000/meu_apache:1.0.0`
+```bash
+docker logout
+docker image tag <registry_image_id> localhost:5000/meu_apache:1.0.0
+```
 
 sendo `endereço_registry/image`
 
-`docker image push localhost:5000/meu_apache:1.0.0`
-
-`docker container rm -f <id_do_container_em_execução>`
-
-`docker image rm -f <id_da_imagem>`
-
-`docker container run -d localhost:5000/meu_apache:1.0.0`
+```bash
+docker image push localhost:5000/meu_apache:1.0.0
+docker container rm -f <id_do_container_em_execução>
+docker image rm -f <id_da_imagem>
+docker container run -d localhost:5000/meu_apache:1.0.0
+```
 
 ele baixa novamente.
 
-`curl localhost:5000/v2/_catalog`
-
-`curl localhost:5000/v2/meu_apache/tags/list`
-
-`docker exec -ti <id_registry> sh`
-
-`ls /var/lib/registry/docker/registry/v2/repositories/meu_apache`
+```bash
+curl localhost:5000/v2/_catalog
+curl localhost:5000/v2/meu_apache/tags/list
+docker exec -ti <id_registry> sh
+ls /var/lib/registry/docker/registry/v2/repositories/meu_apache
+```
