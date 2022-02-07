@@ -8,7 +8,7 @@ Quando altera a versão do pod, ficam dois replicasets, um parado e outro em exe
 
 `vim primeiro-deployment.yaml`
 
-```
+```yaml
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -47,7 +47,7 @@ spec:
 
 `restartPolicy: Always`: se parar, vai reiniciar, a menos que peça para encerrar. Mas se "matar" um pod, o replicaset vai perceber e colocar outro no lugar.
 
-```
+```bash
 kubectl create -f primeiro_deployment.yaml
 kubectl get deployments.
 cp primeiro_deployment.yaml segundo_deployment.yaml
@@ -55,7 +55,7 @@ vim segundo_deployment.yaml
 ```
 
 Muda o nome e o dc do label
-```
+```yaml
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -92,7 +92,7 @@ spec:
       terminationGracePeriodSeconds: 30
 ```
 
-```
+```bash
 kubectl create -f segundo_deployment.yaml
 kubectl get deployments.
 ```
@@ -105,7 +105,7 @@ kubectl get deployments.
 
 `kubectl describe replicasets primeiro-deployment-<hash>`
 
-```
+```bash
 kubectl get pods
 kubectl describe pods primeiro-deployment-<hash>
 ```
@@ -116,7 +116,7 @@ kubectl describe pods primeiro-deployment-<hash>
 
 `kubectl get replicasets. -l dc=NL`
 
-```
+```bash
 kubectl label nodes maquina-2 disk=SSD
 kubectl label nodes maquina-3 disk=HDD
 
@@ -131,19 +131,19 @@ kubectl label nodes maquina-3 disk=HDD --overwrite
 
 Só atualiza com "overwrite"
 
-```
+```bash
 kubectl label nodes maquina-3 dc=NL
 kubectl label nodes maquina-2 dc=UK
 ```
 
-```
+```bash
 cp primeiro_deployment.yaml terceiro_deployment.yaml
 vim terceiro_deployment.yaml
 ```
 
 Modifica abaixo do terminationGracePeriodSeconds
 
-```
+```yaml
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -182,7 +182,7 @@ spec:
         disk: SSD
 ```
 
-```
+```bash
 kubectl create deployment -f terceiro_deployment.yaml
 kubectl get deployments.
 kubectl label nodes maquina-3 --list
@@ -195,7 +195,7 @@ SSD aparece na maquina-2. Para conferir se subiu o terceiro deployment lá:
 
 `kubectl edit deployments. terceiro-deployment` e muda SSD para HDD
 
-```
+```bash
 kubectl get pods -o wide
 kubectl describe deployments. terceiro-deployment
 kubectl get replicasets.
@@ -203,7 +203,7 @@ kubectl get replicasets.
 
 `kubectl label nodes dc- --all` remove as labels dc de todos os nós
 
-```
+```bash
 kubectl label nodes maquina-2 --list
 kubectl label nodes disk- --all
 kubectl label nodes maquina-2 --list
@@ -214,7 +214,7 @@ Apenas para fins didáticos, não aconselhado em produção:
 
 `vim primeiro-replicaset.yaml`
 
-```
+```yaml
 apiVersion: extensions/v1beta1
 kind: ReplicaSet
 metadata:
@@ -233,7 +233,7 @@ spec:
         - containerPort: 80
 ```
 
-```
+```bash
 kubectl create -f primeiro-replicaset.yaml
 kubectl get replicasets
 kubectl get deployments.
@@ -249,7 +249,7 @@ Nomenclaturas para usar com `kubectl get`:
 - svc: service
 - ep: endpoint
 
-```
+```bash
 kubectl describe rs replica-set-primeiro
 kubectl get pods
 kubectl delete pod replica-set-primeiro-<hash>
@@ -264,7 +264,7 @@ Aparece outro pod no lugar do que foi apagado, já que a função do replicaset 
 
 Muda as réplicas para 4
 
-```
+```bash
 kubectl get rs
 kubectl describe rs replica-set-primeiro
 kubectl get pods -L system
@@ -272,7 +272,7 @@ kubectl get pods -L system
 
 Muda a versão do nginx para 1.15.0
 
-```
+```bash
 kubectl describe rs replica-set-primeiro
 kubectl get rs
 kubectl get pods -L system
@@ -280,7 +280,7 @@ kubectl get pods -L system
 
 Ainda está a versão antiga do nginx.
 
-```
+```bash
 kubectl delete pod replica-set-primeiro-<hash>
 kubectl get pods -L system
 ```
@@ -291,7 +291,7 @@ Outro container está sendo criado
 
 `kubectl delete -f primeiro-replicaset.yaml` para remover todos ao mesmo tempo
 
-```
+```bash
 kubectl delete -f primeiro_deployment.yaml
 kubectl delete -f segundo_deployment.yaml
 kubectl delete -f terceiro_deployment.yaml
@@ -303,7 +303,7 @@ Daemonset é praticamente um replicaset, mas não se escolhe quantas réplicas d
 
 `vim primeiro-daemonset.yaml`
 
-```
+```yaml
 apiVersion: extensions/v1beta1
 kind: DaemonSet
 metadata:
@@ -321,7 +321,7 @@ spec:
         - containerPort: 80
 ```
 
-```
+```bash
 kubectl create -f primeiro-daemonset.yaml
 kubectl get damonsets # ou ds
 get pods -o wide
@@ -331,7 +331,7 @@ Não sobe no master por causa do taint
 
 Para tirar o taint da maquina-1: `kubectl taint node maquina-1 node-role.kubernetes.io/master-`. Mas isso não é recomendado. Para colocar de volta: `kubectl taint node maquina-1 node-role.kubernetes.io/master-=value1:NoSchedule`
 
-```
+```bash
 kubectl set image ds daemon-set-primeiro nginx=nginx:1.15.0
 kubectl get pods -o wide
 
@@ -343,7 +343,7 @@ kubectl delete pods daemon-set-primeiro-<hash> # cria outro depois que apaga
 
 ## Rollouts e Rollbacks 
 
-```
+```bash
 kubectl rollout history daemonset daemon-set-primeiro
 kubectl rollout history daemonset daemon-set-primeiro --revision=1
 kubectl rollout history daemonset daemon-set-primeiro --revision=2
@@ -355,7 +355,7 @@ kubectl describe pods daemon-set-primeiro-<hash> | grep Image
 
 O comando que tem `undo` serve para voltar para a primeira versão, mas não volta porque não estava definido no yaml. Adiciona no primeiro nível, depois do template:
 
-```
+```yaml
 updateStrategy:
   type: RollingUpdate
 ```
@@ -368,7 +368,7 @@ updateStrategy:
 
 Para ver funcionando com o updateStrategy:
 
-```
+```bash
 kubectl delete -f primeiro-daemonset.yaml
 
 kubectl create -f primeiro-daemonset.yaml
@@ -385,7 +385,7 @@ kubectl pods -o wide
 
 Ele já atualiza os pods no momento da edição. 
 
-```
+```bash
 kubectl rollout history daemonset daemon-set-primeiro
 kubectl rollout history daemonset daemon-set-primeiro --revision=1
 kubectl rollout history daemonset daemon-set-primeiro --revision=2
@@ -399,7 +399,7 @@ kubectl delete daemonsets daemon-set-primeiro
 
 ## Canary Deploy
 
-```
+```bash
 git clone https://github.com/badtuxx/k8s-canary-deploy-example.git
 cd k8s-canary-deploy-example/
 vim roles/create-cluster/tasks/init-cluster.yml
@@ -427,7 +427,7 @@ Como o selector app do service é giropops e o label app dos deployments também
 
 `curl http://<ip>:32222` algumas vezes para ver a versão mudar. A versão 2 aparece menos, por estar definida para apenas 10%.
 
-```
+```bash
 cp k8s-canary-deploy-example/deploy-app-v2-playbook/roles/common/files/* .
 vim app-v2.yml
 kubectl apply -f app-v2.yml # porque já existe o giropops
@@ -436,7 +436,7 @@ kubectl get pods -o wide
 
 `curl http://<ip>:32222` algumas vezes para ver que agora está balanceado.
 
-```
+```bash
 kubectl scale deployment --replicas=3 giropops-v1
 kubectl get pods -o wide
 kubectl scale deployment --replicas=1 giropops-v1
@@ -445,13 +445,13 @@ kubectl get pods -o wide
 
 `curl http://<ip>:32222` algumas vezes para ver que dificilmente aparece a versão 1.
 
-```
+```bash
 kubectl delete deployments. giropops-v1
 ```
 
 `curl http://<ip>:32222` agora só traz a versão 2.
 
-```
+```bash
 kubectl rollout history deployment giropops-v2
 kubectl rollout history deployment giropops-v2 --revision=1
 kubectl rollout history deployment giropops-v2 --revision=2
@@ -463,7 +463,7 @@ kubectl rollout history deployment giropops-v2 --revision=2
 
 abaixo de replicas, adiciona:
 
-```
+```yaml
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -477,7 +477,7 @@ maxUnavailable: durante o processo de atualização, esse é o número máximo d
 
 Ao invés do número, também é possível colocar a porcentagem.
 
-```
+```bash
 kubectl apply -f app-v2.yml
 kubectl get pods -o wide
 
@@ -491,12 +491,12 @@ muda a versão para 1.0.0 em todas as flags. Ele vai usar a estratégia definida
 
 `kubectl rollout status deployment giropops-v2` para ver o status
 
-```
+```bash
 kubectl delete -f app-v2.yml
 vim app-v2.yml
 ```
 
-```
+```yaml
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -506,7 +506,7 @@ vim app-v2.yml
 
 Muda os valores para 1 e 5, para que seja mais rápido.
 
-```
+```bash
 kubectl apply -f app-v2.yml
 kubectl edit deployments giropops-v2
 ```
@@ -517,7 +517,7 @@ muda a versão para 1.0.0
 
 ### Comandos
 
-```
+```bash
 # kubectl rollout history ds daemon-set-primeiro
 
 # kubectl rollout history ds daemon-set-primeiro --revision=1
@@ -533,7 +533,7 @@ muda a versão para 1.0.0
 # kubectl delete -f primeiro-daemonset.yaml
 ```
 
-```
+```yaml
 # vim primeiro-daemonset.yaml
 
 apiVersion: extensions/v1beta1
