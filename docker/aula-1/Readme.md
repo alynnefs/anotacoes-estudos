@@ -60,7 +60,7 @@ exemplo`stress --cpu 1 --vm-bytes 128M --vm 1`. É possível colocar apenas part
 `docker image ls` mostra um resumo das imagens
 
 `mkdir tosko_dockerfile`
-```
+```bash
 FROM debian  # a partir de quem quero criar a imagem
 
 LABEL app="Giropops"  # criar informação no metadado da imagem do container
