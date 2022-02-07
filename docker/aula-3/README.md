@@ -142,17 +142,19 @@ Forma de ter diversos containers respondendo a determinado serviço
 
 #### Services e volume
 
-`docker volume crete giropops`
-
-`cd /var/lib/docker/volumes/giropops/_data/`
-
-`vim index.html`
-
+```bash
+docker volume crete giropops
+cd /var/lib/docker/volumes/giropops/_data/
+vim index.html
 ```
+
+```bash
 GIROPOPS STRIGUS GIRUS
 ```
 
-`docker service create --name giropops --replicas 3 -p 8080:80 --mount type=volume,src=giropops,dst=/usr/share/nginx/html/ nginx`
+```bash
+docker service create --name giropops --replicas 3 -p 8080:80 --mount type=volume,src=giropops,dst=/usr/share/nginx/html/ nginx
+```
 
 Executar algumas vezes para ver em réplicas diferentes
 - `docker service ls`
@@ -194,13 +196,12 @@ Para verificar
 
 #### Service e Network
 
-`docker service create --name giropops --replicas 3 -p 8080:80 --mount type=volume,src=giropops,dst=/usr/share/nginx/html --hostname nome --limit-cpu 0.25 --limit-memory 64M --env alynne=comye2n --dns 8.8.8.8 nginx`
-
-`docker ps`
-
-`docker container exec -ti <container_id> sh`
-
-`bash`
+```bash
+docker service create --name giropops --replicas 3 -p 8080:80 --mount type=volume,src=giropops,dst=/usr/share/nginx/html --hostname nome --limit-cpu 0.25 --limit-memory 64M --env alynne=comye2n --dns 8.8.8.8 nginx
+docker ps
+docker container exec -ti <container_id> sh
+bash
+```
 
 vai aparecer `root@nome`
 
