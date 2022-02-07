@@ -63,7 +63,7 @@ Nas 3 máquinas:
 
 vim /etc/docker/daemon.json
 
-```
+```json
 {
   "exec-opts": ["native.cgroupdriver=systemd"],
   "log-driver": "json-file",
@@ -112,7 +112,7 @@ Na máquina 1:
 
 Para começar a usar o cluster, precisa dos seguintes comandos (que foram informados pelo kubeadm):
 
-```
+```bash
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
@@ -158,7 +158,7 @@ Não obrigatório, mas para adicionar módulos de kernel:
 
 `vim /etc/modules-load.d/k8s.conf`
 
-```
+```vim
 br_netfilter
 ip_vs_rr
 ip_vs_wrr
@@ -192,7 +192,7 @@ Aparece um warning sobre o systemd ser o driver recomendado, ao invés do cgroup
 
 Copia os comandos de inicialização do cluster
 
-```
+```bash
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
@@ -272,7 +272,7 @@ Nem todas as informações são necessárias para criar um novo pod
 
 Basicamente, o arquivo fica assim:
 
-```
+```yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -354,7 +354,7 @@ Para apagar:
 	
 ## Comandos
 	
-```
+```bash
 # vim /etc/modules-load.d/k8s.conf
 br_netfilter
 ip_vs_rr
@@ -467,7 +467,7 @@ Para criar o setup, serão considerados 3 workers, 3 masters e um load balancer.
 - No security group: inbound > edit > add rule > All Traffic, source k8s-multi-master
 - Connect > copia o ssh de cada master e cola nos terminais, sem apertar enter. Faz o mesmo com o ha-proxy, mas conecta.
 - Na máquina ha-proxy:
-	```
+	```bash
 	sudo su -
 	hostname k8s-haproxy-01
 	echo "hostname k8s-haproxy-01" > /etc/hostname
@@ -479,7 +479,7 @@ Para criar o setup, serão considerados 3 workers, 3 masters e um load balancer.
 
 Adiciona no fim do arquivo:
 
-```
+```vim
 frontend kubernetes
 	mode tcp
 	bind <ip_da_maquina>:6443
@@ -501,7 +501,7 @@ Roundrobin "joga" uma conexão por vez para cada servidor.
 Check fall são quantas falhas serão consideradas para ter o host como down.
 Rise são quantos health check positivos vai considerar para ter o host como up.
 	
-```
+```bash
 systemctl restart haproxy
 systemctl status haproxy
 tail -f /var/log/haproxy.log
@@ -512,7 +512,7 @@ O netstat serve para ver o status da porta 6443.
 	
 - Conecta nas 3 masters e segue os passos:
 
-```
+```bash
 sudo su -
 apt update
 hostname k8s-master-N
@@ -528,7 +528,7 @@ N é 1, 2, 3, um para cada máquina.
 	
 adiciona
 	
-```
+```bash
 <load_balancer_ip> k8s-haproxy
 ```
 	
@@ -536,7 +536,7 @@ Com isso, quando fizer `ping k8s-haproxy`, ele vai alcançar o haproxy/load bala
 	
 Copia o trecho de instalação na [documentação do kubernetes](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/) e cola nos terminais.
 	
-```
+```bash
 sudo apt update $$ sudo apt install -y apt-transport-https curl
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
 cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
@@ -557,13 +557,13 @@ Como o DNS foi definido nas máquinas, fica
 	
 - Copia as seguintes linhas, para configurar o kubectl, e cola na máquina 1
 	
-```
+```bash
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 
-```
+```bash
 kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
 kubectl get nodes
 kubectl get all --all-namespaces
@@ -573,7 +573,7 @@ Pode demorar um pouco para terminar e aparecer com os comandos acima. Copia o co
 	
 - Adiciona nas máquinas 2 e 3 a configuração para usar o kubectl, porque os 3 nós são master
 	
-```
+```bash
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
@@ -583,7 +583,7 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
 Copia os comandos ssh da AWS, colando cada um em seu respectivo terminal
 	
-```
+```bash
 sudo su -
 hostname k8s-worker-N
 echo k8s-worker-N > /etc/hostname
@@ -593,7 +593,7 @@ vim /etc/hosts
 	
 e adiciona o ip do haproxy:
 
-```
+```bash
 <load_balancer_ip> k8s-haproxy
 ```
 	
@@ -607,7 +607,7 @@ Instala o docker e o kubernetes. Depois disso, copia o join de worker que está 
 	
 `kubectl get all --all-namespaces` para ver tudo do cluster
 
-```
+```bash
 kubectl run nginx --image nginx --replicas 10
 kubectl get deploy
 kubectl get pods
