@@ -30,7 +30,7 @@ O container d (?) é o container runtime do docker.
 
 Para verificar
 
-```
+```bash
 kubectl get nodes
 kubectl get deployments.
 kubectl get services
@@ -39,7 +39,7 @@ kubectl get replicasets.
 
 Para apagar
 
-```
+```bash
 kubectl delete delpoyments. meu-nginx
 kubectl delete delpoyments. nginx
 kubectl delete service meu-nginx
@@ -77,7 +77,7 @@ Se fizer `curl <ip_cluster_nginx>` ele retorna a página do nginx
 
 `kubectl get services nginx -o yaml > meu_primeiro_service.yaml`
 
-```
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -97,7 +97,7 @@ spec:
   type: ClusterIP # pode mudar para NodePort ou LoadBalancer
 ```
 
-```
+```bash
 kubectl delete service nginx
 kubectl create -f meu_primeiro_service.yaml
 kubectl get services
@@ -106,7 +106,7 @@ kubectl delete service nginx
 
 ### NodePort
 
-```
+```bash
 kubectl expose deployment nginx --type=NodePort
 kubectl get services
 ```
@@ -119,7 +119,7 @@ Mesmo sendo NodePort, ele trouxe o ClusterIP.
 
 `kubectl get services nginx -o yaml > meu_primeiro_service_nodeport.yaml`
 
-```
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -142,7 +142,7 @@ spec:
 
 O range disponível para o node port incia em 30000 até 32000 (e pouco)
 
-```
+```bash
 kubectl delete service nginx
 kubectl create -f meu_primeiro_service_nodeport.yaml
 kubectl get services
@@ -150,7 +150,7 @@ kubectl get services
 
 ### Load Balancer
 
-```
+```bash
 kubectl delete service nginx
 kubectl expose deployment nginx --type=LoadBalancer
 kubectl get services
@@ -158,7 +158,7 @@ kubectl get endpoints
 kubectl create -f meu_primeiro_service_loadbalancer.yaml
 ```
 
-```
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -179,7 +179,7 @@ spec:
   type: LoadBalancer
 ```
 
-```
+```bash
 kubectl delete service nginx
 kubectl create -f meu_primeiro_service_loadbalancer.yaml
 kubectl get services
@@ -190,7 +190,7 @@ kubectl describe endpoints nginx
 
 `vim meu_primeiro_deployment.yaml`
 
-```
+```yaml
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -240,7 +240,7 @@ spec:
   type: NodePort
 ```
 
-```
+```bash
 kubectl delete deployments. nginx
 kubectl create -f meu_primeiro_deployment.yaml
 ```
@@ -249,14 +249,14 @@ Ele cria o deployment e o serviço.
 
 ### Comandos
 
-```
+```bash
 Add-ons:
 https://kubernetes.io/docs/concepts/cluster-administration/networking/
 https://chrislovecnm.com/kubernetes/cni/choosing-a-cni-provider/
 https://kubernetes.io/docs/concepts/cluster-administration/addons/
 ```
 
-```
+```yaml
 # vim primeiro-service-clusterip.yaml:
 
 apiVersion: v1
@@ -278,7 +278,7 @@ spec:
   type: ClusterIP
 ```
 
-```
+```yaml
 # vim primeiro-service-nodeip.yaml:
 
 apiVersion: v1
@@ -301,7 +301,7 @@ spec:
   type: NodePort
 ```
 
-```
+```yaml
 # vim primeiro-service-loadbalancer.yaml:
 
 apiVersion: v1
@@ -324,7 +324,7 @@ spec:
   type: LoadBalancer
 ```
 
-```
+```bash
 # kubectl create -f primeiro-service-clusterip.yaml
 
 # kubectl create -f primeiro-service-nodeip.yaml
@@ -344,7 +344,7 @@ spec:
 # kubectl describe endpoints nginx-ddswrgb
 ```
 
-```
+```yaml
 # vim deployment-limitado.yaml
 
 
@@ -406,7 +406,7 @@ Copia o `meu_primeiro_deployment.yaml` para `deployment_limitado.yaml` e apaga o
 
 Limits é o total de recurso que o kubernetes vai liberar e requests é o quanto ele vai garantir.
 
-```
+```yaml
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -444,7 +444,7 @@ spec:
     terminationGracePeriodSeconds: 30
 ```
 
-```
+```bash
 kubectl delete deployments. meu-nginx
 kubectl create -f deployment_limitado.yaml
 kubectl get deployments.
@@ -461,7 +461,7 @@ muda o type de ClusterIP para NodePort
 
 `kubectl edit deployments. meu-nginx`
 
-```
+```bash
 kubectl get deployments.
 kubectl get pods
 kubectl get pods -o wide
@@ -469,7 +469,7 @@ kubectl get pods -o wide
 
 `kubectl exec -ti <nome_pod> -- bash` para entrar no pod
 
-```
+```bash
 apt update && apt install -y stress
 stress --vm 1 --vm-bytes 128M
 stress --vm 1 --vm-bytes 300M
@@ -482,14 +482,14 @@ stress --vm 1 --vm-bytes 507M
 
 ## Limit Range
 
-```
+```bash
 kubectl create namespace giropops
 kubectl get namespaces
 kubectl describe namespaces giropops
 kubectl get namespaces giropops -o yaml > meu_primeiro_namespace.yaml
 ```
 
-```
+```yaml
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -499,12 +499,12 @@ spec:
   - kubernetes
 ```
 
-```
+```bash
 kubectl create -f meu_primeiro_namespace.yaml
 kubectl get namespaces
 ```
 
-```
+```yaml
 # vim namespace_limitado.yaml
 apiVersion: v1
 kind: LimitRange
@@ -521,7 +521,7 @@ spec:
     type: Container
 ```
 
-```
+```bash
 kubectl create -f namespace_limitado.yaml -n giropops
 kubectl get limitranges # No resources found
 kubectl get limitranges -n giropops
@@ -532,7 +532,7 @@ kubectl describe limitranges -n giropops limitando-recursos
 
 Tudo o que criar neste namespace já vai estar limitado. Para criar um pod:
 
-```
+```yaml
 # vim pod-limitado.yaml
 apiVersion: v1
 kind: Pod
@@ -545,7 +545,7 @@ spec:
     image: nginx
 ```
 
-```
+```bash
 kubectl create -f pod-limitado.yaml -n giropops # se tá no yaml, não precisa do -n
 kubectl get pods # no resources found
 kubectl get pods -n giropops
@@ -555,7 +555,7 @@ kubectl delete -f pod-limitado.yaml
 
 ### Comandos
 
-```
+```yaml
 # vim limitando-recursos.yaml:
 
 apiVersion: v1
@@ -585,7 +585,7 @@ spec:
       image: nginx
 ```
 
-```
+```bash
 # kubectl create namespace primeiro-namespace
 
 # kubectl get ns
@@ -621,7 +621,7 @@ spec:
 
 `kubectl describe nodes maquina-1` para ver `Taints: node-role.kubernetes.io/master:NoSchedule`. Isso indica que não é para agendar mais nenhum pod. Ele vai manter os pods que estão executando, mas não vai ter mais novos deploys.
 
-```
+```bash
 kubectl create -f deployment_limitado.yaml
 kubectl get deployments. --all-namespaces # para ver quantidade de pods
 kubectl get pods -o wide # estão nas máquinas 2 e 3
@@ -631,18 +631,18 @@ kubectl taint node maquina-2 key1=value1:NoSchedule
 
 `kubectl describe nodes maquina-2` para ver `Taints: key1=value1:NoSchedule`
 
-```
+```bash
 kubectl edit deployments. meu-nginx
 ```
 Apaga os limites de resources
 
-```
+```bash
 kubectl scale --replicas=10 deployment meu-nginx
 kubectl get deployments.
 kubectl get pods -o wide
 ```
 
-```
+```bash
 kubectl delete deployments. meu-nginx
 kubectl taint node maquina-2 key1:NoSchedule-
 
@@ -655,7 +655,7 @@ kubectl get pods -o wide
 
 Todos os pods que estavam no 2 foram movidos para o 3.
 
-```
+```bash
 kubectl taint node maquina-2 key1:NoExecute-
 kubectl get pods -o wide
 ```
@@ -666,7 +666,7 @@ Não volta a balancear o cluster.
 
 ### Comandos
 
-```
+```bash
 # kubectl describe nodes elliot-01 | grep -i taint
 Taints:             node-role.kubernetes.io/master:NoSchedule
 
