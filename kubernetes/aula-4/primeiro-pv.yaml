@@ -9,6 +9,6 @@ spec:
   - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
   nfs:
-    path: /opt/giropops
+    path: /opt/dados
     server: <ip_maquina_1>
     readOnly: false
