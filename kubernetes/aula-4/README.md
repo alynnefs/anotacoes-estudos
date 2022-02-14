@@ -706,7 +706,7 @@ No navegador, enra no `<ip>:<porta>/targets` para ver informação dos nods, pod
 
 No prometheus, em graph: pesquisa a métrica `nginx_http_requests`. Ele já vai ter reconhecido, por ter capturado do container. Clica em `Execute` e clica em `Graph`.
 
-No graphana, add source:
+No grafana, add source:
 
 - name: Prometheus
 - type: Prometheus

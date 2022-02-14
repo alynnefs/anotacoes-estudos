@@ -1,0 +1,12 @@
+apiVersion: rbac.authorizarion.k8s.io/v1beta1
+kind: ClusterRole Binding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorizarion.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: admin-user
+  namespace: kube-system
