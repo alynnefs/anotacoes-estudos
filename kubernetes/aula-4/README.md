@@ -57,7 +57,7 @@ kubectl delete -f pod-emptydir.yaml
 
 O empty dir pode ser usado como agregador de logs, por exemplo.
 
-PV significa persistent volume e PVC é persistent volume claim. PV é como criar um disco, volume, ou compartilhamento e usasse como disco para um cluster. Quando cria um PV, precisa fazer com que ele seja conectado a um(ns) pod(s)m utilizando assim o PVC.
+PV significa persistent volume e PVC é persistent volume claim. PV é como criar um disco, volume, ou compartilhamento e usar como disco para um cluster. Quando cria um PV, precisa fazer com que ele seja conectado a um(ns) pod(s)m utilizando assim o PVC.
 
 Máquina 1:
 
@@ -638,4 +638,107 @@ Subjects (quem) será associado ao roleRef (o quê)
 kubectl create -f admin-cluster-role-binding.yaml
 kubectl get clusterrolebindings.rbac.authorization.k8s.io
 kubectl describe clusterrolebindings.rbac.authorization.k8s.io admin-user
+```
+
+## Helm
+
+Helm é uma forma de conseguir fazer a instalação de determinados softwares, como banco de dados. Ele usa um chart (tipo um playbook do ansible) para baixar o banco de acordo com as informações passadas. O Helm é um "apt install" da sua aplicação e das dependências.
+
+Para instalar:
+
+```bash
+snap install helm --classic
+
+# ou com wget
+wget https://storage.googleapis.com/kubernetes-helm/helm-<versao>-linux-amd64.tar.gz
+tar -xvzf helm-<versao>-linux-amd64.tar.gz
+cd linux-amd64/
+mv helm /usr/local/bin
+mv tiller /usr/local/bin
+helm version
+```
+
+```bash
+helm init
+kubectl create serviceaccount --namespace=kube-system tiller
+kubectl create clusterrolebiding tiller-cluster-role --clusterrole cluster-admin --serviceaccount=kube-system:tiller
+kubectl get clusterrolebidings.rbac.authorizarion.k8s.io
+
+kubectl patch deployments -n kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
+helm list # nada
+helm search grafana
+helm search nginx
+
+kubectl create namespace monitoring
+
+helm install --namespace=monitoring --name=prometheus --version=7.0.0 --set alertmanager.persistentVolume.enabled=false,server.persistentVolume.enabled=false stable/prometheus
+
+```
+
+Por padrão precisa do Persistent Volume. Está como falso para o exercício.
+```bash
+helm list
+kubectl get pods
+kubectl get pods -n monitoring
+kubectl get services -n monitoring
+
+kubectl edit service -n monitoring prometheus-server
+```
+
+Muda de `ClusterIP` para `NodePort`
+
+```bash
+helm install --namespace=monitoring --name=grafana --version=1.12.0 --set=adminUser=admin,adminPassword=admin,service.type=NodePort stable/grafana
+kubectl get pods -n monitoring
+kubectl get service -n monitoring
+
+vim app-v1.yml
+```
+
+Annotation passa a informação para o cluster kubernetes e o serviço do prometheus fica procurando por ele em todos os deployments que estão em execução. Scrape é para pegar as informações do container automaticamente. Port é a porta que vai expor as métricas do serviço.
+
+```bash
+kubectl create -f app-v1.yml
+kubectl get pods
+```
+
+No navegador, enra no `<ip>:<porta>/targets` para ver informação dos nods, pods, endpoints, etc. Se pegar a porta e o endpoint do pod (`<ip>:<porta_pod>/metrics`) em outra aba, será possível ver as métricas.
+
+No prometheus, em graph: pesquisa a métrica `nginx_http_requests`. Ele já vai ter reconhecido, por ter capturado do container. Clica em `Execute` e clica em `Graph`.
+
+No graphana, add source:
+
+- name: Prometheus
+- type: Prometheus
+- URL: http://prometheus-server (nome do serviço do kubernetes)
+- Access: Default
+- Save & test
+
+Home > dashboard > graph > panel title > edit
+
+- `sum(rate(nginx_http_requests{app="giropops"}[5m])) by (version)`
+- legend format: {{version}}
+- display: bars
+
+Salva como `nginx`
+
+```bash
+kubectl create -f app-v2-canary.yml
+kubectl get deployments.
+kubectl get pods
+
+kubectl scale deployment --replicas=10 giropops-v2
+kubectl get deployments.
+```
+
+```bash
+helm list
+helm --help
+helm inspect stable/grafana
+helm status grafana
+helm delete grafana --purge
+helm delete prometheus --purge
+
+kubectl delete -f app-v1.yml
+kubectl delete -f app-v2-canary.yml
 ```
