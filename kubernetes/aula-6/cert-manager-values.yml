@@ -1,0 +1,9 @@
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::371371653782:role/giropops
+    
+installCRDs: true
+
+securityContext:
+  enabled: true
+  fsGroup: 1001
