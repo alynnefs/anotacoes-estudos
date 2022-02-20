@@ -1,0 +1,13 @@
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: nginx-role
+  namespace: ingress
+roleRef:
+  apiGroup: rbac.authorization.k8s.io/v1beta1
+  kind: ClusterRole
+  name: nginx-role
+subjects:
+- kind: ServiceAccount
+  name: nginx
+  namespace: ingress

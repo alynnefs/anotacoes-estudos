@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  name: app-ingress
+spec:
+  rules:
+  # mude para seu endereço
+  - host: ec2-18-212-4-47.compute-1.amazonaws.com
+    http:
+      paths:
+      - backend:
+          serviceName: appsvc1
+          servicePort: 80
+        path: /app1
+      - backend:
+          serviceName: appsvc2
+          servicePort: 80
+        path: /app2
