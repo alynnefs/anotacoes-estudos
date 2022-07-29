@@ -1082,3 +1082,564 @@ vim provisioning/roles/criando-instancias/tasks/provisioning.yml
 ```
 
 Abre no navegador o `<ip>:32222` e o `<ip>:32111/metrics`
+
+## Dia 5
+
+### Utilizando Handlers em nosso playbook
+
+
+```
+# install_k8s/roles/install-k8s/tasks/install.yml
+- name: Instalando o Docker
+  shell: curl -fsSL https://get.docker.com | bash
+  notify: Restart Docker
+  
+# ...
+- name: Instalando os pacotes kubeadm, kubelet e kubectl
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - kubelet
+    - kubeadm
+    - kubectl
+  notify: Restart Kubelet
+```
+
+```
+# install_k8s/roles/install-k8s/handlers/main.yml
+---
+# handlers files for install-k8s
+- name: Restart Docker
+  service:
+    name: docker
+    state: restarted
+
+- name: Restart Kubelet
+  service:
+    name: kubelet
+    state: restarted
+```
+
+Abre o hosts e apaga os IPs de [kubernetes]
+
+```
+ansible-playbook -i hosts main.yml
+```
+
+```
+cd projeto-k8s-cluster/install_k8s
+```
+
+Atualiza os IPs
+
+### Criando o playbook para o deploy da App Giropops V2
+
+```
+cd ..
+mkdir deploy-app-v2
+cp ../deploy-app-v1/hosts .
+cp ../deploy-app-v1/main.yml .
+mkdir roles
+cd roles
+
+ansible-galaxy init deploy-app-v2
+cd ..
+vim main.yml
+```
+
+Muda de "app" para "app-v2"
+
+```
+# tasks/main.yml
+---
+# tasks file for deploy-app-v2
+- include: deploy-app-v2.yml
+```
+
+```
+# tasks/deploy-app-v2.yml
+- name: Instalando o pip
+  apt:
+    name:
+      - python-pip
+
+- name: Instalando dependencias dos modulos do k8s
+  pip:
+    name:
+      - openshift
+      - PyYAML
+
+- name: Copiando o arquivo de deployment da app v1
+  template:
+    src: app-v1.yml.j2
+    dest: /opt/giropops/app-v1.yml
+    owner: root
+    group: root
+    mode: 0644
+  register: copiando_deploy_app_v1
+
+- name: Copiando o arquivo de deployment da app v2
+  template:
+    src: app-v2.yml.j2
+    dest: /opt/giropops/app-v2.yml
+    owner: root
+    group: root
+    mode: 0644
+  register: copiando_deploy_app_v2
+
+- name: Deploy da app-v2
+  k8s:
+    state: present
+    namespace: default
+    src: /opt/giropops/app-v2.yml
+
+- name: Scale down da app-v1
+  k8s:
+    state: present
+    namespace: default
+    src: /opt/giropops/app-v1.yml
+
+- name: Dentro de 2 minutos o app-v1 sera removido. Pressione ctrl+c para cancelar
+  pause:
+    minutes: 2
+
+- name: Removendo o app-v1
+  k8s:
+    state: absent
+    namespace: default
+    src: /opt/giropops/app-v1.yml
+```
+
+```
+# templates/app-v1.yml.j2
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: giropops-v1
+spec:
+  replicas: {{ number_replicas_old_version }}
+  selector:
+    matchLabels:
+      app: giropops
+    template:
+      metadata:
+        labels:
+          app: giropops
+          version: {{ old_version }}
+        annotations:
+          prometheus.io/scrape: "{{ prometheus_scrape }}"
+          prometheus.io/port: "{{ prometheus_port }}"
+      spec:
+        containers:
+        - name: giropops
+          image: linuxtips/nginx-prometheus-exporter:{{ old_version }}
+          env:
+          - name: VERSION
+            value: {{ old_version }}
+          ports:
+          - containerPort: {{ nginx_port }}
+          - containerPort: {{ prometheus_port }}
+```
+
+```
+# templates/app-v1.yml.j2
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: giropops-v2
+spec:
+  replicas: {{ number_replicas_new_version }}
+  selector:
+    matchLabels:
+      app: giropops
+    template:
+      metadata:
+        labels:
+          app: giropops
+          version: {{ new_version }}
+        annotations:
+          prometheus.io/scrape: "{{ prometheus_scrape }}"
+          prometheus.io/port: "{{ prometheus_port }}"
+      spec:
+        containers:
+        - name: giropops
+          image: linuxtips/nginx-prometheus-exporter:{{ new_version }}
+          env:
+          - name: VERSION
+            value: {{ new_version }}
+          ports:
+          - containerPort: {{ nginx_port }}
+          - containerPort: {{ prometheus_port }}
+```
+
+```
+# vars/main.yml
+---
+# vars file for deploy-app-v2
+number_replicas_old_version: 1
+number_replicas_new_version: 10
+old_version: 1.0.0
+new_version: 2.0.0
+prometheus_scrape: "true"
+prometheus_port: 32111
+nginx_port: 80
+environment: production
+```
+
+```
+cd deploy-app-v1
+cp ../install_k8s/hosts .
+
+ansible-playbook -i hosts main.yml
+```
+
+```
+# terminal 1
+watch -n1 kubectl get pods
+```
+
+## Dia 6
+
+### AWX - intro
+
+AWX é uma forma de executar os playbooks de uma forma gráfica
+
+Criar uma instância AWS EC2 e instalar docker, ansible, pip
+
+```
+curl -fsSL https://get.docker.com | bash
+docker version
+
+sudo apt-add-repository --yes --update ppa:ansible/ansible
+apt install ansible
+ansible --version
+
+apt install python-pip
+pip install docker-compose==1.9.0 docker-py
+
+apt get install npm nodejs
+npm install npm --global
+
+apt install -y tree
+
+git clone git@github.com:ansible/awx.git
+```
+
+```
+cd awx/installer
+vim install.yml
+
+cd roles/
+
+# arquivos legais de ver:
+vim local_docker/tasks/compose.yml
+vim local_docker/templates/docker-compose.yml.j2
+vim local_docker/defaults/main.yml
+vim local_docker/tasks/set_image.yml
+vim inventory # onde acontece a mágica
+```
+
+```
+openssl rand -hex 32 # cola no secret_key do inventory
+```
+
+Descomenta ou modifica cada linha como o bloco a seguir:
+
+```
+postgres_data_dir="~/var/lib/pgdocker"
+docker_compose_dir="/var/lib/awx"
+project_data_dir=/var/lib/awx/projects
+```
+
+Para pegar o arquivo sem os comentários e colocar em outro arquivo:
+
+```
+cat inventory | grep -v "^#" | grep -v "^$" > inventory_clean
+mv inventory_clean inventory # para substituir
+```
+
+```
+ansible-playbook -i inventory install.yml
+
+docker ps
+docker logs -f <id_web>
+```
+
+Acessa o IP público pelo navegador
+
+### AWX - Mais alguns detalhes
+
+Máquina local:
+
+```
+cd projeto-k8s-cluster/provisioning
+vim hosts
+```
+
+Apaga os IPs do kubernetes. Cria uma IAM e configura as credenciais.
+
+```
+ansible-playbook -i hosts main.yml
+cat hosts
+
+cd .. && rm -rf extra
+```
+
+### Criando nosso inventário e o nosso projeto
+
+Na página do AWX:
+
+#### Inventories > + > Inventory
+
+Name: hosts
+description: meu inventario
+organization: Default
+variables:
+
+```
+---
+K8S_MASTER_NODE_IP=<IP>
+K8S_API_SECURE_PORT=6443
+```
+
+#### Hosts > +
+
+Host name: <ip_1>
+Description: k8s master
+    
+#### Hosts > +
+
+Host name: <ip_2>
+Description: k8s worker
+
+#### Hosts > +
+
+Host name: <ip_3>
+Description: k8s worker
+    
+#### Projects > +
+
+Name: Kubernetes
+Description: Configure k8s cluster
+Organization: Default
+SCM Type: Git
+SCM URL: https://github.com/badtuxx/descomplicando-ansible-2020.git
+SCM branch/tag/commit: master
+SCM update options: clean, delete on update, update revision on launch
+
+
+### AWX - Criando e executando o nosso primeiro template
+
+#### Credentials > create credential
+
+Name: Ansible class
+Description: minha chave
+Organization: Default
+Credential type: Machine
+SSH Private key: conteúdo da chave ansible-class.pem
+Privilege escalation method: sudo
+    
+#### Templates > +
+    
+Name: Configurando o K8s
+Description: Configuracao do k8s com 3 nodes
+Job type: Run
+Inventory: hosts
+Project: kubernetes
+Playbook: install_k8s/main.yml
+Credentials: ansible-class
+Verbosity: 1 (Verbose)
+Options: enable privilege escalation, enable concurrent jobs
+    
+#### Templates > Configurando o K8s > foguetinho
+    
+Espera subir
+    
+#### Inventories > hosts > groups > +
+    
+Name: k8s-master
+    
+#### Inventories > hosts > hosts > +
+
+Seleciona o primeiro IP público
+
+#### Inventories > hosts > groups > +
+    
+Name: k8s-worker
+Variables:
+    
+```
+---
+K8S_MASTER_NODE_IP: <IP>
+K8S_API_SECURE_PORT: 6443
+```
+    
+#### Inventories > hosts > hosts > +
+
+Seleciona os outros dois IPs públicos
+    
+
+Máquina onde está rodando o kubernetes:
+    
+```
+ssh ubuntu@<ip>
+sudo su -
+kubectl get nodes
+kubectl get all --all-namespaces
+```
+
+### AWX - Criando e executando o nosso workflow
+
+Copia o `Configurando o K8s`
+
+Name: Deploy Giropops App v1
+Description: Deployando a versao 1 do giropops app
+Playbook: deploy-app-v1/main.yml
+Verbosity: 0 (Normal)
+
+Copia o Deploy Giropops App v1
+
+Name: Deploy Giropops App v2
+Description: Deployando a versao 2 do giropops app
+Playbook: deploy-app-v2/main.yml
+
+#### Template > + > workflow template
+
+Name: Giropops App
+Description: Deploys do K8s, App v1 e App v2
+Organization: Default
+Inventory: hosts
+
+#### Templates > Giropops App > Workflow Visualizer
+
+Clica em Start
+
+Configurando o K8s
+Run: Always
+Convergence: Any
+
+Clica em +
+
+Deploy Giropops App v1
+Run: On Success
+Converge: Any
+
+Clica em +
+
+Deploy Giropops App v2
+Run: On Success
+Converge: Any
+
+Clica em +
+
+Deploy Giropops App v1
+Run: On Failure
+Converge: Any
+
+Caso falhe, ele volta pro v1
+
+
+Executa o `Giropops App`
+
+```
+curl htttp://<ip>:32222/
+```
+
+### Ansible-Vault - como utilizar
+
+```
+cd deploy-app-v1
+vim roles/deploy-app/vars/main.yml
+```
+
+```
+---
+# vars file for deploy-app
+numeros_replicas: 10
+version: 1.0.0
+prometheus_scrape: "true"
+prometheus_port: 32111
+ngix_port: 80
+db_root_password: Giropops123Mudar
+db_admin_user: godofredo
+password_tosko: asfafedde
+```
+
+Obs: não é seguro deixar senha em arquivos
+
+```
+ansible-vault --help
+ansible-vault encrypt roles/deploy-app/vars/main.yml # coloca a senha
+cat roles/deploy-app/vars/main.yml
+ansible-vault decrypt roles/deploy-app/vars/main.yml # coloca a senha
+
+ansible-vault encrypt roles/deploy-app/vars/main.yml --output teste.yml
+# apenas o teste fica encryptado
+
+ansible-vault encrypt roles/deploy-app/vars/main.yml
+
+ansible-playbook -i hosts main.yml --ask-vault-pass
+
+touch ~/.vault_password
+vim ~/.vault_password # senha
+ansible-playbook -i hosts main.yml --vault-password-file ~/.vault_password
+```
+
+Sobe todas as máquinas da AWS e possivelmente mudar os IPs públicos.
+
+```
+ansible-playbook -i hosts main.yml --vault-password-file ~/.vault_password
+
+ansible-vault create opa # coloca a senha e o texto do arquivo
+ansible-vault decrypt opa
+
+ansible-vault encrypt opa
+ansible-vault rekey opa # para mudar de senha
+
+ansible-vault edit roles/deploy-app/vars/main.yml
+ansible-vault view roles/deploy-app/vars/main.yml
+```
+
+Caso precise colocar senhas diferentes
+
+```
+# vim ~/.ansible.cfg
+[defaults]
+host_key_checking = False
+vault_identity_list = opa@~/.vault_password, ipa@prompt
+```
+
+```
+ansible-vault create --vault-id opa teste.yaml # pede a senha do ipa
+
+ansible-vault decrypt roles/deploy-app/vars/main.yml
+ansible-vault encrypt --vault-id opa roles/deploy-app/vars/main.yml
+
+ansible-playbook -i hosts main.yml
+```
+
+Abre o `~/.ansible.cfg`, tira o ipa e deixa o opa como prompt
+
+```
+ansible-playbook -i hosts main.yml # pede a senha do opa
+```
+
+### Ansible-Vault - Como configurar no AWX
+
+#### Deploy Giropops App v1
+
+Atualiza os IPs. Se pedir pra executar de novo, vai dar erro porque não tem o vault secrets.
+
+#### Credentials > create
+
+Name: uoa
+description: vault
+organization: default
+credential type: vault
+vault password: giropops
+vault identifier: opa
+
+#### Templates > Deploy Giropops App v1
+
+Credentials: adiciona o opa
