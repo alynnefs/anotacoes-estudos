@@ -77,7 +77,7 @@
 - [ ] Public cloud
 - [x] Hybrid cloud
 
-**Private cloud deployments are typically less expensive than public cloud deployments. **
+**Private cloud deployments are typically less expensive than public cloud deployments.**
 
 - [ ] True
 - [x] False
@@ -93,7 +93,7 @@
 - [ ] True
 - [x] False
 
-**Private cloud deployments are typically more expensive than public cloud deployments. **
+**Private cloud deployments are typically more expensive than public cloud deployments.**
 
 - [x] True
 - [ ] False
@@ -147,3 +147,62 @@
 - [ ] Scalability to meet changing demand
 - [x] Increased need for on-site IT staff
 - [ ] Reduced operational expenditure
+
+**Divided by HUAWEI CLOUD services, which cloud service is not a computing cloud service?**
+
+- [x] Virtual private cloud
+- [ ] Elastic Cloud Service
+- [ ] Bare Metal Service
+- [ ] Elastically scalable cloud services
+
+**Public cloud provides multiple types of elastic cloud servers, including but not limited to what?**
+
+- [x] Disk Enhanced
+- [x] GPU Accelerated
+- [x] Bare Metal Server Type
+- [x] General Calculating Type
+
+**What applications and services does Huawei Cloud Application Supermarket provide?**
+
+- [x] Professional service
+- [x] Basic software
+- [x] Developer tools
+- [x] Commercial software
+
+**What are the deployment modes of cloud computing?**
+
+- [x] Public Cloud
+- [x] Hybrid Cloud
+- [x] Private Cloud
+- [x] Community Cloud Industry Cloud
+
+**What is the usual division of Regions?**
+
+- [ ] Cluster server
+- [ ] None of the other options
+- [x] Geographical location and network latency dimensions
+- [ ] Availability zone (AZ)
+
+**Which of the following constitutes Huawei's public cloud ecosystem?**
+
+- [x] Huawei Cloud Market
+- [x] Huawei Cloud Academy
+- [x] Developer Center
+- [x] Partner
+
+**Which of the following is not a capability of the software development cloud?**
+
+- [ ] Project management
+- [ ] Code check
+- [x] Data backup
+- [ ] Compile and build
+
+**Cloud computing is a model, it can obtain the required resources from the configurable resource sharing pool anytime, anywhere, conveniently and on-demand (e.g.,Computing, storage, network, applications, and services),Resources can be quickly supplied and released,Minimize the workload of managing resources and interaction with service providers**
+
+- [x] True
+- [ ] False
+
+**Elastic cloud servers between different availability zones in the same area cannot communicate with each other.**
+
+- [ ] True
+- [x] False
