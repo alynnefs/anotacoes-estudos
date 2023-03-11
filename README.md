@@ -1,1 +1,1 @@
-Anotações dos cursos da LINUXtips
+Anotações dos cursos
