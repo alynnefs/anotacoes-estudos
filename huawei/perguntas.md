@@ -206,3 +206,115 @@
 
 - [ ] True
 - [x] False
+
+**After creating a Windows elastic cloud server, in order to remotely connect to the elastic cloud server through RDP, Which of the following ports needs to be opened in the incoming direction of the security group?**
+
+- [ ] 80
+- [x] 3389
+- [ ] 33
+- [ ] 53
+
+**After creating an elastic cloud server, what can be modified?**
+
+- [x] Modify bandwidth
+- [ ] Modify the elastic public network IP address
+- [x] Modify private ip address
+- [x] Modify cloud server name
+
+**Description of the secret key, which of the following is correct?**
+
+- [ ] It is not possible to create a key pair to log in to the Windows single-sex cloud server
+- [x] The key pair information used by the elastic cloud server can be queried through the console
+- [x] You can use the key to authenticate when logging in with VNC
+- [ ] You can change the key pair to log in to the elastic cloud server to log in with a password
+
+**Elastic Cloud Server is bound _____. Can be through the fixed public network IP The address provides external access.**
+
+- [ ] Mirroring
+- [ ] System disk
+- [x] Elastic Public Network IP
+- [ ] Data disk
+
+**How long does it normally take to apply for an elastic cloud server?**
+
+- [x] Few minutes
+- [ ] Few seconds
+- [ ] Few days
+- [ ] Few hours
+
+**How many times can th access key pairs be downloaded?**
+
+- [ ] 2
+- [ ] 4
+- [ ] 3
+- [x] 1
+
+**HUAWEI CLOUD Elastic Cloud Server connects to the public network(Internet). What are the ways?**
+
+- [x] NAT gateway
+- [x] Elastic public network ip
+- [ ] Elastic load balancing
+- [ ] Cloud monitoring
+
+**What are the components of the elastic cloud server?**
+
+- [x] CPU
+- [x] Mirroring
+- [x] RAM
+- [x] Cloud hard drive
+
+**What are the key features of IAM unified identity authentication?**
+
+- [x] Support Huawei customer service agent maintenance operation
+- [x] User group-based permissions
+- [x] Centralized control of users and security credentials
+- [x] Centralized control of user access
+
+**What are the lifecycle management of elastic cloud servers?**
+
+- [x] Boot up
+- [ ] Unmount disk
+- [x] Shut down
+- [x] Delete
+
+**What can be done when the vCPU and memory of the Elastic Cloud Server(ECS) you purchased is insufficient?**
+
+- [ ] Reinstall the operating system
+- [ ] Mount the disk
+- [x] Change specifications
+- [ ] Switch operating system
+
+**Which of the following cloud server resources can be automatically raised and lowered through elastic scaling?**
+
+- [x] Bandwidth
+- [ ] Hard Drive capacity
+- [ ] RAM
+- [ ] CPU
+
+**Which of the following cloud server specifications is suitable for graphics hosting scenarios?**
+
+- [ ] s3.large.2
+- [ ] d2.4xlarge. 8
+- [x] gl.2xlarge
+- [ ] m3.2xlarge.8
+
+**After the elastic cloud server is successfully created, if the size does not meet the demand, the specifications of the cloud server can be changed.**
+
+- [x] True
+- [ ] False
+
+**Virtual machines that are not bound to EIP can access the external network by configuring custom routes.**
+
+- [ ] True
+- [x] False
+
+**When creating an elastic cloud server, the elastic cloud server can be initialized through the "file injection" function provided by the system.**
+
+- [x] True
+- [ ] False
+
+**After the elastic cloud server is successfully created, once the bandwidth used is determined, will not be able to modify.**
+
+- [ ] True
+- [x] False
+
