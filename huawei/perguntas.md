@@ -482,3 +482,111 @@
 
 - [x] True
 - [ ] False
+
+**KMS which of the following is not included in the main application scenarios of (Key Management Service)?**
+
+- [x] Network transmission data encryption
+- [ ] Key information asset encryption and decryption
+- [ ] User personal data encryption and decryption
+- [ ] Business core data encryption and decryption
+
+**The IPSec framework contains several protocols, which are the important ones?**
+
+- [x] AH
+- [x] IKE
+- [ ] IP
+- [x] ESP
+
+**Which of the following are the main functions of the Enterprise Host Security HSS?**
+
+- [x] Software vulnerability detection
+- [x] Weak password detection
+- [x] Malicious program detection
+- [x] Remote login detection
+
+**Which of the following is not included in the function of Vulnerability Scanning Service?**
+
+- [ ] Weak password detection
+- [x] Mirror leakage management
+- [ ] Emergency vulnerability management
+- [ ] diversification testing
+
+**Cyber security as an important component of cloud security services, achieve network isolation, Responding to cyber attacks, ensure network security.**
+
+- [x] True
+- [ ] False
+
+**Data security provides confidentiality and integrity protection for user data applications and storage in the cloud computing environment.
+**
+- [x] True
+- [ ] False
+
+**Enterprise Host Security provides functions such as account cracking protection, malicious program detection, critical file change detection, Web directory management, container escape detection, and software vulnerability detection.**
+
+- [x] True
+- [ ] False
+
+**Cloud Monitoring, what alarm status does Cloud Monitoring currently support?**
+
+- [x] All of the above
+- [ ] Warning
+- [ ] Insufficient data
+- [ ] Back to normal
+
+**Description of health check, Which ones are correct?**
+
+- [ ] When the number of failures exceeds the health threshold, Think the service is unavailable
+- [x] When the number of failures exceeds the unhealthy threshold, Think the service is unavailable
+- [x] No reply was received after the timeout period expired, It is considered a failure
+- [ ] The protocol of the check path supports HTTPS
+
+**What are the alarm levels**
+
+- [ ] secondary
+- [x] hint
+- [ ] urgent
+- [x] important
+
+**Which of the following parameters need to be configured for Cloud Monitoring to create an alarm rule?**
+
+- [x] Alert level
+- [x] Alert strategy
+- [ ] Monitoring time
+- [x] Monitoring indicators
+
+**Alarm notification is the action taken when a certain alarm state is triggered. Users can set notifications when creating or modifying alarms, or turn off notifications.**
+
+- [x] True
+- [ ] False
+
+**Cloud Monitoring is an open resource monitoring platform, It can provide resource monitoring, alarm, notification and other services.**
+
+- [x] True
+- [ ] False
+
+**Which of the following services can be monitored by Cloud Eye?**
+
+- [x] ECS
+- [x] VPC
+- [ ] DCS
+- [ ] ELB
+
+**To monitor the OS of an ECS, you must manually install the Agent on the ECS.**
+
+- [ ] True
+- [x] False
+
+**Cloud Eye can monitor instance and bandwidth scaling in AS.**
+
+- [ ] True
+- [x] False
+
+**The cloud monitoring service is free to use.**
+
+- [x] True
+- [ ] False
+
+**Users can add or delete the monitoring charts of the instance resources of key concern on the homepage of the cloud monitoring overview. As the object of the important instance of concern, it can support the multi-index comparison function., It is convenient to check in time every time you log in to the cloud monitoring platform.**
+
+- [x] True
+- [ ] False
