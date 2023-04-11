@@ -318,3 +318,167 @@
 - [ ] True
 - [x] False
 
+**What are the key features of RDS?**
+
+- [x] Performance monitoring
+- [ ] Flow cleaning
+- [x] Backup and restore
+- [x] High availability
+
+**Which of the following is not a characteristic of relational database services?**
+
+- [ ] Reduce DBA skills requirements and costs
+- [ ] Just pay the RDS rental fee
+- [x] No need to buy and install any software and hardware
+- [x] Expensive DBA costs
+
+**Which of the following options is the default port of the MySQL database instance?**
+
+- [ ] 80
+- [ ] 5432
+- [ ] 1433
+- [x] 3306
+
+**The smallest management unit of relational database services is an instance**
+
+- [x] True
+- [ ] False
+
+**If you want to keep multiple versions of an object, which of the following can be achieved?**
+
+- [ ] Configure life cycle rules
+- [x] Enable multiple version control
+- [ ] Enabled Blog management
+- [ ] Modify storage category
+
+**The object storage server provides account-based ACLs. Which of the following access rights are not supported by ACLs?**
+
+- [ ] Read permission
+- [x] Modify ACL permissions
+- [ ] View ACL permissions
+- [ ] Public read and write permissions
+
+**OBS Supports simultaneous backup of all cloud hard drives in the server.**
+
+- [x] True
+- [ ] False
+
+**OBS the management console does not support batch upload of files.**
+
+- [ ] True
+- [x] False
+
+**OBSBrowser+ supports batch upload function.**
+
+- [x] True
+- [ ] False
+
+**Cloud dedicated line service is a dedicated line network service that establishes a connection between local data centers and public clouds, What types of dedicated lines are currently only supported by cloud dedicated lines?**
+
+- [ ] OSPFVPN
+- [ ] IP Sec VPN
+- [ ] SSL VPN
+- [x] MPLS VPN
+
+**Description of VPN gateway bandwidth is the following error?**
+
+- [ ] You can configure alarm rules in cloud monitoring to monitor bandwidth
+- [ ] The bandwidth of the local VPN gateway is the bandwidth shared by all VPN connections created based on the gateway
+- [ ] During the use of VPN, when the network traffic exceeds the VPN bandwidth, it may cause network congestion and cause the VPN connection to be interrupted.
+- [x] The sum of VPN connection bandwidth can exceed the bandwidth of the VPN gateway
+
+**Which of the following options does a VPN consist of?**
+
+- [ ] Subnet
+- [ ] VPC
+- [x] VPN gateway
+- [x] VPN connection
+
+**The two sites communicate across the Internet, and IP can be deployed on the firewalls at both ends Sec VPN thus protects the mutual access traffic between the two intranets.**
+
+- [x] True
+- [ ] False
+
+**VPN connection is a technology based on Internet tunnel, Can help you quickly build a secure and reliable encrypted channel between the VPN gateway and the user gateway**
+
+- [x] True
+- [ ] False
+
+**Cloud traditional file sharing storage compared, what are the advantages of SFS?**
+
+- [x] File Sharing
+- [ ] Simple operation but high cost
+- [x] High reliability
+- [x] Seamless integration
+
+**Shared path of the file system, what is the correct format of the NFS type?**
+
+- [ ] //File system domain name:,path
+- [x] File system domain name:/path
+- [ ] File system domain name:, path
+- [ ] //File system domain name:/path
+
+**What are the following ways to access the flexible file service?**
+
+- [x] Management console mode
+- [ ] Client mode
+- [x] API way
+- [ ] Local way
+
+**Which of the following file system types does Resilient File Service have?**
+
+- [x] SFS Turbo enhanced
+- [x] SFS Turbo Standard
+- [ ] SFS
+- [ ] SFS Turbo Performance Type
+
+**A file system can be mounted on multiple cloud servers at the same time.**
+
+- [x] True
+- [ ] False
+
+**The CIFS file system supports mounting on cloud servers using the Linux operating system.**
+
+- [ ] True
+- [x] False
+
+**The file system supports batch creation.**
+
+- [x] True
+- [ ] False
+
+**HUAWEI CLOUD EI service, what kind of service has full-stack big data capabilities?**
+
+- [ ] DS data warehouse service
+- [ ] CloudStream real-time streaming computing service
+- [ ] CDM Cloud Data Migration Service
+- [x] MRS MapReduce service
+
+**What are the advantages of using HUAWEI CLOUD EI service?**
+
+- [x] Have AIBasic platform, providing general AI ability
+- [x] Free operation and maintenance, users only need to focus on business
+- [x] One-stop big data basic service
+- [x] Elastic resource scaling
+
+**Which of the following is wrong about the description of the elastic public network IP?**
+
+- [ ] It can be flexibly bound and unbound with resources such as elastic cloud servers, virtual IP, elastic load balancing, and NAT gateways.
+- [ ] Elastic public IP (ElasticIP) provides independent public IP resources, including public IP addresses and public network export bandwidth services.
+- [ ] EIP can add shared bandwidth to reduce bandwidth usage costs.
+- [x] Only support billing on demand.
+
+**Face recognition is provided to users in an open API, the user obtains the face processing result through real-time access and call API.**
+
+- [x] True
+- [ ] False
+
+**HUAWEI CLOUD EI service, Model Arts, machine learning, and graph engines are AI platform services.**
+
+- [x] True
+- [ ] False
+
+**ModelArts supports automatic learning to achieve zero AI Infrastructure AIModel.**
+
+- [x] True
+- [ ] False
